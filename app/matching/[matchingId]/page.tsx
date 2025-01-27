@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import matchingData from "@/matching.json";
 import { AlarmClock, GalleryVerticalEnd, X } from "lucide-react";
@@ -12,24 +12,44 @@ import {
   DragEndEvent,
   useDraggable,
   useDroppable,
-} from '@dnd-kit/core';
-import { useState } from 'react';
-import useSound from 'use-sound';
+} from "@dnd-kit/core";
+import { useState, useMemo } from "react";
+import useSound from "use-sound";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { use } from 'react';
+import { useRouter } from 'next/navigation';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
-function Draggable({ id, children }: { id: string, children: React.ReactNode }) {
+function Draggable({
+  id,
+  children,
+}: {
+  id: string;
+  children: React.ReactNode;
+}) {
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
     id: id,
   });
-  
-  const style = transform ? {
-    transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-  } : undefined;
+
+  const style = transform
+    ? {
+        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+      }
+    : undefined;
 
   return (
-    <div 
-      ref={setNodeRef} 
-      style={style} 
-      {...listeners} 
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...listeners}
       {...attributes}
       className="cursor-move"
     >
@@ -38,16 +58,22 @@ function Draggable({ id, children }: { id: string, children: React.ReactNode }) 
   );
 }
 
-function Droppable({ id, children }: { id: string, children: React.ReactNode }) {
+function Droppable({
+  id,
+  children,
+}: {
+  id: string;
+  children: React.ReactNode;
+}) {
   const { isOver, setNodeRef } = useDroppable({
     id: id,
   });
 
   return (
-    <div 
+    <div
       ref={setNodeRef}
       className={`h-12 border-2 border-dashed rounded flex items-center justify-center min-w-[200px]
-        ${isOver ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}`}
+        ${isOver ? "border-blue-500 bg-blue-50" : "border-gray-300"}`}
     >
       {children}
     </div>
@@ -57,30 +83,48 @@ function Droppable({ id, children }: { id: string, children: React.ReactNode }) 
 export default function MatchingPage({
   params,
 }: {
-  params: { matchingId: string };
+  params: Promise<{ matchingId: string }>;
 }) {
-  const { matchingId } = params;
-  const match = matchingData.find((m) => m.id === matchingId);
+  const router = useRouter();
+  const resolvedParams = use(params);
+  const match = matchingData.find((m) => m.id === resolvedParams.matchingId);
 
   if (!match) return <div>Yükleniyor...</div>;
 
   const [matches, setMatches] = useState<{ [key: string]: string }>({});
   const [questions] = useState(() =>
-    match.questions.map((q) => ({
-      id: q.id,
+    match.questions.map((q, index) => ({
+      id: index.toString(), // Add unique id since it's not in the JSON
+      title: q.title,
       questions: q.question,
-      dropZones: q.question.map((_, i) => `${q.id}-${i}`),
+      correctAnswer: q.correctAnswer,
+      dropZones: q.question.map((_, i) => `question-${index}-${i}`),
     }))
   );
-  const [answers] = useState([...match.questions[0].correctAnswer].sort(() => Math.random() - 0.5));
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const answers = useMemo(() => 
+    [...match.questions[currentQuestionIndex].correctAnswer].sort(() => Math.random() - 0.5),
+    [currentQuestionIndex, match.questions]
+  );
 
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor)
   );
 
-  const [playPickupSound] = useSound('/pickup.mp3');
-  const [playDropSound] = useSound('/drop.mp3');
+  const [playPickupSound] = useSound("/pickup.mp3");
+  const [playDropSound] = useSound("/drop.mp3");
+  const [playFailSound] = useSound("/fail.mp3");
+
+  const [showResults, setShowResults] = useState(false);
+  const [matchResults, setMatchResults] = useState({
+    correct: 0,
+    incorrect: 0,
+    totalPoints: 0,
+    passed: false
+  });
+
+  const [matchStatus, setMatchStatus] = useState<{ [key: string]: boolean }>({});
 
   function handleDragStart() {
     playPickupSound();
@@ -90,14 +134,25 @@ export default function MatchingPage({
     const { active, over } = event;
     if (!over) return;
 
-    playDropSound();
-    
     const answerId = active.id as string;
     const dropZoneId = over.id as string;
 
+    // Parse the dropZone id to get question index
+    const [_, questionIndex, answerIndex] = dropZoneId.split('-').map(Number);
+    
+    // Check if the answer is correct
+    const isCorrect = answers[parseInt(answerId)] === 
+      questions[currentQuestionIndex].correctAnswer[answerIndex];
+
+    if (isCorrect) {
+      playDropSound();
+    } else {
+      playFailSound();
+    }
+
     // Önceki eşleştirmeleri temizle
     const newMatches = { ...matches };
-    Object.keys(newMatches).forEach(key => {
+    Object.keys(newMatches).forEach((key) => {
       if (newMatches[key] === answerId) {
         delete newMatches[key];
       }
@@ -106,7 +161,76 @@ export default function MatchingPage({
     // Yeni eşleştirmeyi ekle
     newMatches[dropZoneId] = answerId;
     setMatches(newMatches);
+
+    // Update match status
+    const newMatchStatus = { ...matchStatus };
+    newMatchStatus[dropZoneId] = isCorrect;
+    setMatchStatus(newMatchStatus);
   }
+
+  const handleNext = () => {
+    if (currentQuestionIndex < match.questions.length - 1) {
+      setCurrentQuestionIndex((prev) => prev + 1);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex((prev) => prev - 1);
+    }
+  };
+
+  const handleSubmit = () => {
+    let correctCount = 0;
+    let incorrectCount = 0;
+
+    questions[currentQuestionIndex].questions.forEach((_, index) => {
+      const dropZoneId = questions[currentQuestionIndex].dropZones[index];
+      const userAnswer = answers[parseInt(matches[dropZoneId] || '')];
+      const correctAnswer = questions[currentQuestionIndex].correctAnswer[index];
+
+      if (userAnswer === correctAnswer) {
+        correctCount++;
+      } else if (matches[dropZoneId]) {
+        incorrectCount++;
+      }
+    });
+
+    const totalPoints = (correctCount / questions[currentQuestionIndex].questions.length) * 100;
+    const passed = totalPoints >= 70;
+
+    setMatchResults({
+      correct: correctCount,
+      incorrect: incorrectCount,
+      totalPoints,
+      passed
+    });
+
+    setShowResults(true);
+  };
+
+  const handleDialogClose = () => {
+    setShowResults(false);
+    router.push('/');
+  };
+
+  const renderQuestionContent = (text: string) => {
+    if (text.match(/^https?:\/\//)) {
+      return (
+        <div className="my-4 max-w-[300px] mx-auto">
+          <img 
+            src={text} 
+            alt="Soru görseli" 
+            className="w-full h-auto object-contain rounded-lg" 
+            style={{
+              maxHeight: '200px'
+            }}
+          />
+        </div>
+      );
+    }
+    return <span>{text}</span>;
+  };
 
   return (
     <div className="flex flex-col m-5">
@@ -122,17 +246,16 @@ export default function MatchingPage({
           <span className="px-3 py-1 bg-black text-white rounded-sm">60</span>
         </div>
       </div>
-      <div className="flex flex-col pt-10 items-center gap-8">
+      <div className="flex flex-col mx-auto pt-10  gap-2">
         <div className="flex flex-row items-start gap-2">
           <div className="p-1 bg-black rounded-sm">
             <GalleryVerticalEnd color="white" />
           </div>
-          <h1></h1>
           <p className="font-bold">{match.title}</p>
-          <p>1 of 30</p>
+          <p>{currentQuestionIndex + 1} of {match.questionsCount}</p>
         </div>
 
-        <h2 className="pt-5 font-bold text-lg">{questions[0].content}</h2>
+        <h2 className="pt-5 font-bold text-lg">{questions[currentQuestionIndex].title}</h2>
         <p className="text-neutral-500">
           Sürükle bırak yaparak sorular ve cevaplarını eşleştiriniz.
         </p>
@@ -144,35 +267,39 @@ export default function MatchingPage({
           onDragStart={handleDragStart}
         >
           <div className="flex flex-col pt-10 gap-8">
-            {questions.map((questionSet) => (
-              <div key={questionSet.id} className="border-b pb-4">
-                <div className="flex flex-wrap gap-4 mb-4">
-                  {questionSet.questions.map((question, qIndex) => (
-                    <div key={qIndex} className="flex flex-col gap-2">
-                      <div className="flex items-center justify-center border border-gray-300 bg-gray-100 p-2 rounded min-w-[200px]">
-                        {question}
-                      </div>
-                      <Droppable id={questionSet.dropZones[qIndex]}>
-                        {matches[questionSet.dropZones[qIndex]] && (
-                          <div className="bg-green-100 p-2 rounded w-full text-center">
-                            {answers[parseInt(matches[questionSet.dropZones[qIndex]])]}
-                          </div>
-                        )}
-                      </Droppable>
+            <div className="border-b pb-4">
+              <div className="flex flex-wrap gap-4 mb-4">
+                {questions[currentQuestionIndex].questions.map((question, qIndex) => (
+                  <div key={qIndex} className="flex flex-col gap-2">
+                    <div className="flex items-center justify-center border border-gray-300 bg-gray-100 p-2 rounded min-w-[200px]">
+                      {renderQuestionContent(question)}
                     </div>
-                  ))}
-                </div>
+                    <Droppable id={questions[currentQuestionIndex].dropZones[qIndex]}>
+                      {matches[questions[currentQuestionIndex].dropZones[qIndex]] && (
+                        <div className={`p-2 rounded w-full text-center ${
+                          matchStatus[questions[currentQuestionIndex].dropZones[qIndex]]
+                            ? 'bg-green-100'
+                            : 'bg-red-100'
+                        }`}>
+                          {answers[parseInt(matches[questions[currentQuestionIndex].dropZones[qIndex]])]}
+                        </div>
+                      )}
+                    </Droppable>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
 
             <div className="flex flex-wrap gap-2 mt-4 sticky bottom-4 bg-white p-4 border rounded shadow-lg">
               {answers.map((answer, index) => (
                 <Draggable key={index} id={index.toString()}>
                   <div
                     className={`flex items-center justify-center min-w-[200px] h-12 rounded
-                      ${Object.values(matches).includes(index.toString()) 
-                        ? 'opacity-50 bg-gray-100' 
-                        : 'bg-blue-100'}
+                      ${
+                        Object.values(matches).includes(index.toString())
+                          ? "opacity-50 bg-gray-100"
+                          : "bg-blue-100"
+                      }
                     `}
                   >
                     {answer}
@@ -182,7 +309,71 @@ export default function MatchingPage({
             </div>
           </div>
         </DndContext>
+
+        <div className="mt-6 flex w-full justify-between">
+          <Button
+            onClick={handlePrevious}
+            disabled={currentQuestionIndex === 0}
+          >
+            Önceki Soru
+          </Button>
+          <Button
+            onClick={
+              currentQuestionIndex === match.questions.length - 1
+                ? handleSubmit
+                : handleNext
+            }
+            variant={
+              currentQuestionIndex === match.questions.length - 1
+                ? "destructive"
+                : "default"
+            }
+          >
+            {currentQuestionIndex === match.questions.length - 1
+              ? "Sınavı Bitir"
+              : "Sonraki Soru"}
+          </Button>
+        </div>
+
+        <ScrollArea className="my-5">
+          <div className="grid grid-cols-10 gap-2">
+            {match.questions.map((_, index) => (
+              <Button
+                key={index}
+                variant="outline"
+                onClick={() => setCurrentQuestionIndex(index)}
+              >
+                {index + 1}
+              </Button>
+            ))}
+          </div>
+        </ScrollArea>
       </div>
+
+      <Dialog open={showResults} onOpenChange={handleDialogClose}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Eşleştirme Sonucu</DialogTitle>
+          </DialogHeader>
+          <div className="pt-4 space-y-2">
+            <DialogDescription asChild>
+              <div>
+                <div>Toplam Soru: {questions[currentQuestionIndex].questions.length}</div>
+                <div className="text-green-600">Doğru Sayısı: {matchResults.correct}</div>
+                <div className="text-red-600">Yanlış Sayısı: {matchResults.incorrect}</div>
+                <div>Boş Sayısı: {questions[currentQuestionIndex].questions.length - (matchResults.correct + matchResults.incorrect)}</div>
+                <div className="font-bold">Başarı Yüzdesi: %{matchResults.totalPoints.toFixed(0)}</div>
+                <div className={`text-lg font-bold ${matchResults.passed ? 'text-green-600' : 'text-red-600'}`}>
+                  {matchResults.passed ? 'Tebrikler, Başarılı Oldunuz!' : 'Üzgünüz, Başarısız Oldunuz!'}
+                </div>
+              </div>
+            </DialogDescription>
+          </div>
+          <DialogFooter>
+            <Button onClick={handleDialogClose}>Tamam</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

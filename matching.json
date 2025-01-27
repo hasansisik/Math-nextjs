@@ -23,6 +23,19 @@
           "6",
           "8"
         ]
+      },
+      {
+        "title": "2) Aşağıdaki verilen işlemlerini sonuçları ile eşleştiriniz",
+        "question": [
+          "https://i.ibb.co/K66Xsj1/I-want-you-to-make-a-triangle-of-one-color-that-lies-flat.jpg",
+          "https://i.ibb.co/TgKz95x/I-want-you-to-make-a-square-of-one-color-that-lies-flat.jpg",
+          "https://i.ibb.co/0hVBjdb/I-want-you-to-make-a-circle-of-one-color-that-lies-flat-1.jpg"
+        ],
+        "correctAnswer": [
+          "Üçgen",
+          "Kare",
+          "Daire"
+        ]
       }
     ]
   }
