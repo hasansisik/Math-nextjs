@@ -12,11 +12,11 @@ import {
   useDraggable,
   useDroppable,
 } from "@dnd-kit/core";
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import useSound from "use-sound";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useRouter } from 'next/navigation';
+import { useRouter } from "next/navigation";
 import {
   Dialog,
   DialogContent,
@@ -26,7 +26,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-function Draggable({ id, children }: { id: string; children: React.ReactNode }) {
+function Draggable({
+  id,
+  children,
+}: {
+  id: string;
+  children: React.ReactNode;
+}) {
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
     id: id,
   });
@@ -50,7 +56,13 @@ function Draggable({ id, children }: { id: string; children: React.ReactNode }) 
   );
 }
 
-function Droppable({ id, children }: { id: string; children: React.ReactNode }) {
+function Droppable({
+  id,
+  children,
+}: {
+  id: string;
+  children: React.ReactNode;
+}) {
   const { isOver, setNodeRef } = useDroppable({
     id: id,
   });
@@ -58,7 +70,7 @@ function Droppable({ id, children }: { id: string; children: React.ReactNode }) 
   return (
     <div
       ref={setNodeRef}
-      className={`h-12 border-2 border-dashed rounded flex items-center justify-center min-w-[200px]
+      className={`h-12 border-2 border-dashed rounded-full flex items-center justify-center min-w-[200px]
         ${isOver ? "border-blue-500 bg-blue-50" : "border-gray-300"}`}
     >
       {children}
@@ -73,7 +85,7 @@ const MatchingPage = ({ params }: { params: { placementId: string } }) => {
   if (!match) return <div>Yükleniyor...</div>;
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [items, setItems] = useState(() => 
+  const [items, setItems] = useState(() =>
     [...match.questions[currentQuestionIndex].correctAnswer]
       .map(String)
       .sort(() => Math.random() - 0.5)
@@ -93,30 +105,32 @@ const MatchingPage = ({ params }: { params: { placementId: string } }) => {
     correct: 0,
     incorrect: 0,
     totalPoints: 0,
-    passed: false
+    passed: false,
   });
-  
+
   const [timer, setTimer] = useState({ minutes: 0, seconds: 0 });
   const [timerActive, setTimerActive] = useState(true);
 
-  const [droppedItems, setDroppedItems] = useState<{ [key: string]: string }>({});
+  const [droppedItems, setDroppedItems] = useState<{ [key: string]: string }>(
+    {}
+  );
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
 
     if (timerActive) {
       interval = setInterval(() => {
-        setTimer(prev => {
+        setTimer((prev) => {
           const newSeconds = prev.seconds + 1;
           if (newSeconds === 60) {
             return {
               minutes: prev.minutes + 1,
-              seconds: 0
+              seconds: 0,
             };
           }
           return {
             ...prev,
-            seconds: newSeconds
+            seconds: newSeconds,
           };
         });
       }, 1000);
@@ -135,11 +149,11 @@ const MatchingPage = ({ params }: { params: { placementId: string } }) => {
 
     const activeId = active.id as string;
     const overId = over.id as string;
-    
+
     // Yeni konuma yerleştir
-    setDroppedItems(prev => ({
+    setDroppedItems((prev) => ({
       ...prev,
-      [overId]: activeId
+      [overId]: activeId,
     }));
     playDropSound();
   }
@@ -148,16 +162,17 @@ const MatchingPage = ({ params }: { params: { placementId: string } }) => {
     setTimerActive(false);
     const currentQuestion = match.questions[currentQuestionIndex];
     const correctOrder = currentQuestion.correctAnswer.map(String);
-    
-    const isCorrect = currentQuestion.type === '>' 
-      ? JSON.stringify(items) === JSON.stringify(correctOrder)
-      : JSON.stringify(items) === JSON.stringify([...correctOrder].reverse());
+
+    const isCorrect =
+      currentQuestion.type === ">"
+        ? JSON.stringify(items) === JSON.stringify(correctOrder)
+        : JSON.stringify(items) === JSON.stringify([...correctOrder].reverse());
 
     setMatchResults({
       correct: isCorrect ? 1 : 0,
       incorrect: isCorrect ? 0 : 1,
       totalPoints: isCorrect ? 100 : 0,
-      passed: isCorrect
+      passed: isCorrect,
     });
 
     setShowResults(true);
@@ -166,49 +181,50 @@ const MatchingPage = ({ params }: { params: { placementId: string } }) => {
   const handleDialogClose = () => {
     setTimer({ minutes: 0, seconds: 0 }); // Timer'ı sıfırla
     setShowResults(false);
-    router.push('/');
+    router.push("/");
   };
 
   return (
     <div className="flex flex-col m-5">
       <div className="flex items-center justify-between mx-3">
-        <div className='flex items-center flex-row'>
-          <div 
-            className="p-2 bg-slate-100 mr-3 rounded-sm cursor-pointer hover:bg-slate-200" 
-            onClick={() => router.push('/')}
+        <div className="flex items-center flex-row">
+          <div
+            className="p-2 bg-slate-100 mr-3 rounded-sm cursor-pointer hover:bg-slate-200"
+            onClick={() => router.push("/")}
           >
             <X />
           </div>
-        <AlarmClock color="gray" className="mr-2" />
-        <div className="flex items-center gap-1">
-          <span className="mr-2">Geçen Süre:</span>
-          <span className="px-3 py-1 bg-black text-white rounded-sm">
-            {String(timer.minutes).padStart(2, '0')}
-          </span>
-          <span>:</span>
-          <span className="px-3 py-1 bg-black text-white rounded-sm">
-            {String(timer.seconds).padStart(2, '0')}
-          </span>
+          <AlarmClock color="gray" className="mr-2" />
+          <div className="flex items-center gap-1">
+            <span className="mr-2">Geçen Süre:</span>
+            <span className="px-3 py-1 bg-black text-white rounded-sm">
+              {String(timer.minutes).padStart(2, "0")}
+            </span>
+            <span>:</span>
+            <span className="px-3 py-1 bg-black text-white rounded-sm">
+              {String(timer.seconds).padStart(2, "0")}
+            </span>
+          </div>
         </div>
-        </div>
-        <Button 
-          variant="destructive" 
-          onClick={handleSubmit}
-        >
+        <Button variant="destructive" onClick={handleSubmit}>
           Sınavı Bitir
         </Button>
       </div>
-      
+
       <div className="flex flex-col mx-auto pt-10  gap-2">
         <div className="flex flex-row items-center gap-2">
           <div className="p-1 bg-black rounded-sm">
             <GalleryVerticalEnd color="white" />
           </div>
           <p className="font-bold">{match.title}</p>
-          <p>{currentQuestionIndex + 1} ile {match.questionsCount}</p>
+          <p>
+            {currentQuestionIndex + 1} ile {match.questionsCount}
+          </p>
         </div>
 
-        <h2 className="pt-5 font-bold text-lg">{match.questions[currentQuestionIndex].title}</h2>
+        <h2 className="pt-5 font-bold text-lg">
+          {match.questions[currentQuestionIndex].title}
+        </h2>
         <p className="text-neutral-500">
           Sürükle bırak yaparak sorular ve cevaplarını eşleştiriniz.
         </p>
@@ -219,46 +235,65 @@ const MatchingPage = ({ params }: { params: { placementId: string } }) => {
           onDragEnd={handleDragEnd}
           onDragStart={handleDragStart}
         >
-          <div className="flex flex-col gap-8">
-            {/* Yuva alanı */}
-            <div className="flex items-center justify-center gap-4">
-              {match.questions[currentQuestionIndex].correctAnswer.map((correctAnswer, index) => (
-                <div key={index} className="flex items-center">
-                  <Droppable id={String(correctAnswer)}>
-                    {droppedItems[String(correctAnswer)] && (
-                      <div className={`p-2 rounded w-full h-full text-center 
-                        ${droppedItems[String(correctAnswer)] === String(correctAnswer) 
-                          ? 'bg-green-200' 
-                          : 'bg-red-200'
-                        }`}>
-                        {droppedItems[String(correctAnswer)]}
-                      </div>
-                    )}
-                  </Droppable>
-                  {index < match.questions[currentQuestionIndex].correctAnswer.length - 1 && (
-                    <div className="text-2xl font-bold text-gray-500 mx-2">
-                      {match.questions[currentQuestionIndex].type}
+          <div className="flex flex-col pt-10 gap-8">
+            <div className="border-b pb-4">
+              {/* Yuva alanı */}
+              <div className="flex flex-wrap gap-4 mb-4">
+                {match.questions[currentQuestionIndex].correctAnswer.map(
+                  (correctAnswer, index) => (
+                    <div key={index} className="flex items-center">
+                      <Droppable id={String(correctAnswer)}>
+                        {droppedItems[String(correctAnswer)] && (
+                          <div
+                            className={`p-2 w-full h-full text-center rounded-full
+                        ${
+                          droppedItems[String(correctAnswer)] ===
+                          String(correctAnswer)
+                            ? "bg-green-200"
+                            : "bg-red-200"
+                        }`}
+                          >
+                            {droppedItems[String(correctAnswer)]}
+                          </div>
+                        )}
+                      </Droppable>
+                      {index <
+                        match.questions[currentQuestionIndex].correctAnswer
+                          .length -
+                          1 && (
+                        <div className="text-2xl font-bold text-gray-500 mx-2">
+                          {match.questions[currentQuestionIndex].type}
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-              ))}
+                  )
+                )}
+              </div>
             </div>
 
             {/* Taşınabilir öğeler */}
-            <div className="flex flex-wrap justify-center gap-4 p-4 bg-gray-50 rounded-lg">
+            <div className="flex flex-wrap justify-center items-center gap-4 mt-4 sticky bottom-4 bg-white p-4 border rounded shadow-lg w-full">
               {items.map((item) => (
                 <Draggable key={item} id={item}>
-                  <div className={`
-                    flex items-center justify-center w-[200px] h-12 rounded
-                    ${Object.values(droppedItems).includes(item) ? 'opacity-50' : ''}
+                  <div
+                    className={`
+                    flex items-center justify-center w-[200px] h-12 rounded-full
                     ${
-                      Object.entries(droppedItems).find(([key, value]) => value === item)?.[0] === item 
-                        ? 'bg-green-200' 
-                        : Object.values(droppedItems).includes(item) 
-                          ? 'bg-red-200' 
-                          : 'bg-blue-100'
+                      Object.values(droppedItems).includes(item)
+                        ? "opacity-50"
+                        : ""
                     }
-                  `}>
+                    ${
+                      Object.entries(droppedItems).find(
+                        ([value]) => value === item
+                      )?.[0] === item
+                        ? "bg-green-200"
+                        : Object.values(droppedItems).includes(item)
+                        ? "bg-red-200"
+                        : "bg-blue-100"
+                    }
+                  `}
+                  >
                     {item}
                   </div>
                 </Draggable>
@@ -316,12 +351,24 @@ const MatchingPage = ({ params }: { params: { placementId: string } }) => {
             <DialogDescription asChild>
               <div>
                 <div>Toplam Soru: 1</div>
-                <div className="text-green-600">Doğru Sayısı: {matchResults.correct}</div>
-                <div className="text-red-600">Yanlış Sayısı: {matchResults.incorrect}</div>
+                <div className="text-green-600">
+                  Doğru Sayısı: {matchResults.correct}
+                </div>
+                <div className="text-red-600">
+                  Yanlış Sayısı: {matchResults.incorrect}
+                </div>
                 <div>Boş Sayısı: 0</div>
-                <div className="font-bold">Başarı Yüzdesi: %{matchResults.totalPoints.toFixed(0)}</div>
-                <div className={`text-lg font-bold ${matchResults.passed ? 'text-green-600' : 'text-red-600'}`}>
-                  {matchResults.passed ? 'Tebrikler, Başarılı Oldunuz!' : 'Üzgünüz, Başarısız Oldunuz!'}
+                <div className="font-bold">
+                  Başarı Yüzdesi: %{matchResults.totalPoints.toFixed(0)}
+                </div>
+                <div
+                  className={`text-lg font-bold ${
+                    matchResults.passed ? "text-green-600" : "text-red-600"
+                  }`}
+                >
+                  {matchResults.passed
+                    ? "Tebrikler, Başarılı Oldunuz!"
+                    : "Üzgünüz, Başarısız Oldunuz!"}
                 </div>
               </div>
             </DialogDescription>
