@@ -1,4 +1,5 @@
 "use client";
+import { use, Usable } from "react";
 import placementData from "@/placement.json";
 import { AlarmClock, GalleryVerticalEnd, X } from "lucide-react";
 import {
@@ -78,28 +79,13 @@ function Droppable({
   );
 }
 
-const MatchingPage = ({ params }: { params: { placementId: string } }) => {
+const MatchingPage = ({ params }: { params: Usable<{ placementId: string }> }) => {
   const router = useRouter();
-  const match = placementData.find((m) => m.id === params.placementId);
-
-  if (!match) return <div>Yükleniyor...</div>;
+  const unwrappedParams = use(params);
+  const match = placementData.find((m) => m.id === unwrappedParams.placementId);
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [items, setItems] = useState(() =>
-    [...match.questions[currentQuestionIndex].correctAnswer]
-      .map(String)
-      .sort(() => Math.random() - 0.5)
-  );
-
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor)
-  );
-
-  const [playPickupSound] = useSound("/pickup.mp3");
-  const [playDropSound] = useSound("/drop.mp3");
-  const [playFailSound] = useSound("/fail.mp3");
-
+  const [items, setItems] = useState<string[]>([]);
   const [showResults, setShowResults] = useState(false);
   const [matchResults, setMatchResults] = useState({
     correct: 0,
@@ -107,14 +93,28 @@ const MatchingPage = ({ params }: { params: { placementId: string } }) => {
     totalPoints: 0,
     passed: false,
   });
-
   const [timer, setTimer] = useState({ minutes: 0, seconds: 0 });
   const [timerActive, setTimerActive] = useState(true);
+  const [droppedItems, setDroppedItems] = useState<{ [key: string]: string }>({});
 
-  const [droppedItems, setDroppedItems] = useState<{ [key: string]: string }>(
-    {}
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor)
   );
+  const [playPickupSound] = useSound("/pickup.mp3");
+  const [playDropSound] = useSound("/drop.mp3");
 
+  // Items için useEffect
+  useEffect(() => {
+    if (match) {
+      const shuffledItems = [...match.questions[currentQuestionIndex].correctAnswer]
+        .map(String)
+        .sort(() => 0.5 - Math.random());
+      setItems(shuffledItems);
+    }
+  }, [match, currentQuestionIndex]);
+
+  // Timer için useEffect
   useEffect(() => {
     let interval: NodeJS.Timeout;
 
@@ -138,6 +138,8 @@ const MatchingPage = ({ params }: { params: { placementId: string } }) => {
 
     return () => clearInterval(interval);
   }, [timerActive]);
+
+  if (!match) return <div>Yükleniyor...</div>;
 
   function handleDragStart() {
     playPickupSound();
@@ -179,7 +181,7 @@ const MatchingPage = ({ params }: { params: { placementId: string } }) => {
   };
 
   const handleDialogClose = () => {
-    setTimer({ minutes: 0, seconds: 0 }); // Timer'ı sıfırla
+    setTimer({ minutes: 0, seconds: 0 }); 
     setShowResults(false);
     router.push("/");
   };
@@ -284,13 +286,13 @@ const MatchingPage = ({ params }: { params: { placementId: string } }) => {
                         : ""
                     }
                     ${
-                      Object.entries(droppedItems).find(
-                        ([value]) => value === item
-                      )?.[0] === item
-                        ? "bg-green-200"
+                      Object.entries(droppedItems).some(
+                        ([key, value]) => value === item && key === item
+                      )
+                        ? "bg-green-200" // doğru yere yerleştirilmiş
                         : Object.values(droppedItems).includes(item)
-                        ? "bg-red-200"
-                        : "bg-blue-100"
+                        ? "bg-red-200"   // yanlış yere yerleştirilmiş
+                        : "bg-blue-100"  // henüz yerleştirilmemiş
                     }
                   `}
                   >

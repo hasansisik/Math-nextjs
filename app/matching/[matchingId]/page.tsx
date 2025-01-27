@@ -12,7 +12,7 @@ import {
   useDraggable,
   useDroppable,
 } from "@dnd-kit/core";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import useSound from "use-sound";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -88,33 +88,18 @@ export default function MatchingPage({
   const resolvedParams = use(params);
   const match = matchingData.find((m) => m.id === resolvedParams.matchingId);
 
-  if (!match) return <div>Yükleniyor...</div>;
-
+  // State tanımlamaları
   const [matches, setMatches] = useState<{ [key: string]: string }>({});
   const [questions] = useState(() =>
-    match.questions.map((q, index) => ({
-      id: index.toString(), // Add unique id since it's not in the JSON
+    match?.questions.map((q, index) => ({
+      id: index.toString(),
       title: q.title,
       questions: q.question,
       correctAnswer: q.correctAnswer,
       dropZones: q.question.map((_, i) => `question-${index}-${i}`),
-    }))
+    })) || []
   );
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const answers = useMemo(() => 
-    [...match.questions[currentQuestionIndex].correctAnswer].sort(() => Math.random() - 0.5),
-    [currentQuestionIndex, match.questions]
-  );
-
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor)
-  );
-
-  const [playPickupSound] = useSound("/pickup.mp3");
-  const [playDropSound] = useSound("/drop.mp3");
-  const [playFailSound] = useSound("/fail.mp3");
-
   const [showResults, setShowResults] = useState(false);
   const [matchResults, setMatchResults] = useState({
     correct: 0,
@@ -122,15 +107,30 @@ export default function MatchingPage({
     totalPoints: 0,
     passed: false
   });
-
   const [matchStatus, setMatchStatus] = useState<{ [key: string]: boolean }>({});
-
   const [timer, setTimer] = useState({ minutes: 0, seconds: 0 });
   const [timerActive, setTimerActive] = useState(true);
+  const [answers, setAnswers] = useState<string[]>([]);
+
+  // Hook tanımlamaları
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor)
+  );
+  const [playPickupSound] = useSound("/pickup.mp3");
+  const [playDropSound] = useSound("/drop.mp3");
+  const [playFailSound] = useSound("/fail.mp3");
+
+  // useEffect'ler buraya
+  useEffect(() => {
+    if (match) {
+      setAnswers([...match.questions[currentQuestionIndex].correctAnswer]
+        .sort(() => Math.random() - 0.5));
+    }
+  }, [match, currentQuestionIndex]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
-
     if (timerActive) {
       interval = setInterval(() => {
         setTimer(prev => {
@@ -148,9 +148,10 @@ export default function MatchingPage({
         });
       }, 1000);
     }
-
     return () => clearInterval(interval);
   }, [timerActive]);
+
+  if (!match) return <div>Yükleniyor...</div>;
 
   function handleDragStart() {
     playPickupSound();
@@ -164,7 +165,7 @@ export default function MatchingPage({
     const dropZoneId = over.id as string;
 
     // Parse the dropZone id to get question index
-    const [_, questionIndex, answerIndex] = dropZoneId.split('-').map(Number);
+    const [answerIndex] = dropZoneId.split('-').map(Number);
     
     // Check if the answer is correct
     const isCorrect = answers[parseInt(answerId)] === 
