@@ -10,107 +10,19 @@
     "desc": "2025 Ocak Ayı Sınav-1 Kurstanbul tarafından e-sınav müfredatına uygun olarak hazırlanmıştır.",
     "questions": [
       {
-        "question": "1) Geçilmekte olan araç sürücüsü aşağıdakilerden hangisini yapmalıdır?",
-        "options": [
-          "A) Hızını arttırmalıdır.",
-          "B) Bulunduğu şeridi izlemelidir.",
-          "C) Önündeki aracı geçmeye çalışmalıdır.",
-          "D) Dönüş lambalarıyla geç işareti vermelidir."
+        "title": "1) Aşağıdaki verilen işlemlerini sonuçları ile eşleştiriniz",
+        "question": [
+          "6 x 2 - 2",
+          "6 - 5 - 1",
+          "2 x 4 - 2",
+          "0 x 5 + 8"
         ],
-        "correctAnswer": "B"
-      },
-      {
-        "question": "2) Şekildeki trafik tanzim işaretine göre hangi numaralı araçlar geçme yasağına uymamıştır?",
-        "image": "https://ehliyetsinavihazirlik.com/images/7-ekim-2017/23.gif",
-        "options": [
-          "A) Yalnız 3",
-          "B) 1 ve 2",
-          "C) 2 ve 3",
-          "D) 2, 3 ve 4"
-        ],
-        "correctAnswer": "D"
-      },
-      {
-        "question": "3) Bir sürücünün trafik içindeki istenmeyen durumlara öfkelenmesi ve bu öfkeyi belli etmesi yerine, hangi davranışı göstermesi hâlinde çok daha huzurlu bir trafik ortamı oluşur?",
-        "options": [
-          "A) Hoşgörülü olması",
-          "B) Bencil davranması",
-          "C) Aşırı stres yapması",
-          "D) Sürekli kornaya basması"
-        ],
-        "correctAnswer": "A"
-      },
-      {
-        "question": "4) Aksine bir durum yoksa, otoyollarda yolcu sepetsiz iki tekerlekli motosikletlerin azami hız sınırı saatte kaç kilometredir?",
-        "options": [
-          "A) 70",
-          "B) 80",
-          "C) 90",
-          "D) 100"
-        ],
-        "correctAnswer": "C"
-      },
-      {
-        "question": "5) Aşağıdakilerden hangisinin her periyodik bakımda değiştirilmesi gerekir?",
-        "options": [
-          "A) Polen filtresinin",
-          "B) Fren hidroliğinin",
-          "C) Araç lastiklerinin",
-          "D) Soğutma suyunun"
-        ],
-        "correctAnswer": "A"
-      },
-      {
-        "question": "6) Ülkemizde, trafik kazalarındaki kusur oranlarının (%) yıllara göre dağılımı tablodaki gibidir. Bu verilere göre aşağıdakilerden hangisi kesinlikle söylenebilir?",
-        "image": "https://ehliyetsinavihazirlik.com/images/sorular/8subat2014ehliyetsorulari/soru36.jpg",
-        "options": [
-          "A) Kazaların çoğu insan kaynaklıdır.",
-          "B) Kara yolları, deniz ve hava yollarına göre daha risklidir.",
-          "C) Toplu taşıma yapılması ülke ekonomisini olumlu yönde etkiler.",
-          "D) Kara yolu ulaşım sistemi, diğer ulaşım sistemlerinden daha çok kullanılmaktadır."
-        ],
-        "correctAnswer": "A"
-      },
-      {
-        "question": "7) Geceleri araç kullanırken aydınlatmanın yeterli olduğu yerlerde araç ışıklarından hangisi kullanılmalıdır?",
-        "options": [
-          "A) Sis ışıkları",
-          "B) Acil uyarı ışıkları",
-          "C) Uzağı gösteren ışıklar",
-          "D) Yakını gösteren ışıklar"
-        ],
-        "correctAnswer": "D"
-      },
-      {
-        "question": "8) I. Hızlarını artırmaları  II. Virajı dar bir kavisle almaları III. Öndeki aracı geçmeleri Görseldeki gibi bir karayolu bölümünde seyreden sürücülerin, numaralanmış davranışlardan hangilerini yapmaları tehlikeli durumların oluşmasına neden olur?",
-        "image": "https://ehliyetsinavihazirlik.com/images/animasyonlu_sorular/27.JPG",
-        "options": [
-          "A) I ve II",
-          "B) I ve III",
-          "C) II ve III",
-          "D) I, II ve III"
-        ],
-        "correctAnswer": "D"
-      },
-      {
-        "question": "9) Aşağıdakilerden hangisi trafiğin düzenlenmesinde en yüksek önceliğe sahiptir?",
-        "options": [
-          "A) Trafik ışıkları",
-          "B) Trafik görevlisi",
-          "C) Yer işaretleri",
-          "D) Trafik levhaları"
-        ],
-        "correctAnswer": "B"
-      },
-      {
-        "question": "10) Kaburga kemiğinde kırık olan kazazedeye aşağıdaki pozisyonlardan hangisi verilerek hastaneye sevk edilmelidir?",
-        "options": [
-          "A) https://ehliyetsinavihazirlik.com/images/sorular/8aralik2013ehliyetsorulari/soru12cevapa.jpg",
-          "B) https://ehliyetsinavihazirlik.com/images/sorular/8aralik2013ehliyetsorulari/soru12cevapb.jpg",
-          "C) https://ehliyetsinavihazirlik.com/images/sorular/8aralik2013ehliyetsorulari/soru12cevapc.jpg",
-          "D) https://ehliyetsinavihazirlik.com/images/sorular/8aralik2013ehliyetsorulari/soru12cevapd.jpg"
-        ],
-        "correctAnswer": ""
+        "correctAnswer": [
+          "10",
+          "0",
+          "6",
+          "8"
+        ]
       }
     ]
   }

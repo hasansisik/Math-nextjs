@@ -114,7 +114,7 @@ export default function Home() {
                <Card
                  key={match.id}
                  className="flex-1 cursor-pointer hover:shadow-lg transition-shadow"
-                 onClick={() => router.push(`/match/${match.id}`)}
+                 onClick={() => router.push(`/matching/${match.id}`)}
                >
                  <CardHeader>
                    <div className="relative w-full h-32 mb-4">
