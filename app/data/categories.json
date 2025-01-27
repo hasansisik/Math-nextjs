@@ -17,8 +17,8 @@
     },
     {
       "id": 4,
-      "name": "Görsel Eşleştir",
-      "filter": "lesson"
+      "name": "Sıralama",
+      "filter": "placement"
     }
   ]
 }

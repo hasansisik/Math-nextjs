@@ -3,6 +3,7 @@ import { useState } from "react";
 import categories from "./data/categories.json";
 import exams from "@/exams.json";
 import matching from "@/matching.json";
+import placement from "@/placement.json";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
@@ -19,7 +20,6 @@ export default function Home() {
 
   return (
     <div className="flex-1 flex flex-col">
-      {/* Görsel */}
       {/* Tab Bar */}
       <div className="border-b">
         <nav className="mx-auto px-7 pt-4">
@@ -170,7 +170,69 @@ export default function Home() {
              ))}
            </div>
           )}
-          {selectedFilter === "query" && <div></div>}
+          {selectedFilter === "placement" && (
+             <div className="flex flex-col sm:flex-row gap-6 w-full">
+             {/* Sınavlar Kartı */}
+             {placement.map((place) => (
+               <Card
+                 key={place.id}
+                 className="flex-1 cursor-pointer hover:shadow-lg transition-shadow"
+                 onClick={() => router.push(`/placement/${place.id}`)}
+               >
+                 <CardHeader>
+                   <div className="relative w-full h-32 mb-4">
+                     <Image
+                       src="/matching.jpg"
+                       alt="Course Image"
+                       layout="fill"
+                       objectFit="cover"
+                       className="rounded-lg"
+                     />
+                   </div>
+                   <CardTitle>{place.title}</CardTitle>
+                 </CardHeader>
+                 <CardContent>
+                   <div className="flex flex-col">
+                     <div className="flex justify-between">
+                       <div className="flex text-center flex-row gap-4">
+                         <CircularProgress
+                           value={place.accuracy}
+                           color="#34d399"
+                         />
+                         <div>
+                           <p>Zorluk</p>
+                           <p>{place.accuracy}%</p>
+                         </div>
+                       </div>
+                       <div className="flex text-center flex-row  gap-2">
+                         <CircularProgress
+                           value={place.completionRate}
+                           color="#34d399"
+                         />
+                         <div>
+                           <p>Başarı Yüzdesi</p>
+                           <p>{place.completionRate}%</p>
+                         </div>
+                       </div>
+                     </div>
+                     <div className="flex flex-col justify-between mt-4">
+                       <p className="px-4 py-1 bg-gray-100 rounded-full w-fit">
+                         {place.category}
+                       </p>
+                       <div className="pt-4 flex flex-row justify-between">
+                         <p className="text-base">
+                         Oluşturulma tarihi:{" "}
+                           {format(new Date(place.createdAt), "dd/MM/yyyy")}
+                         </p>
+                         <p>Soru Sayısı: {place.questionsCount}</p>
+                       </div>
+                     </div>
+                   </div>
+                 </CardContent>
+               </Card>
+             ))}
+           </div>
+          )}
           {selectedFilter === "all" && <div></div>}
         </main>
       </div>
