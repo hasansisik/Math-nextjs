@@ -1,0 +1,270 @@
+[
+    {
+      "image": "https://ehliyet.io/img/tanzim/1.jpg",
+      "text": "Yol Ver"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/2.jpg",
+      "text": "Dur"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/3.jpg",
+      "text": "Karşıdan Gelene Yol Ver"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/4.jpg",
+      "text": "Girişi Olmayan Yol"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/5.jpg",
+      "text": "Taşıt Trafiğine Kapalı Yol"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/6.jpg",
+      "text": "Motosiklet Hariç Motorlu Taşıt Trafiğine Kapalı Yol"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/7.jpg",
+      "text": "Motosiklet Giremez"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/8.jpg",
+      "text": "Bisiklet Giremez"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/9.jpg",
+      "text": "Mobet Giremez"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/10.jpg",
+      "text": "Kamyon Giremez"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/11.jpg",
+      "text": "Otobüs Giremez"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/12.jpg",
+      "text": "Treyler Giremez"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/13.jpg",
+      "text": "Yaya Giremez"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/14.jpg",
+      "text": "At Arabası Giremez"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/15.jpg",
+      "text": "El Arabası Giremez"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/16.jpg",
+      "text": "Traktör Giremez"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/17.jpg",
+      "text": "Parlayıcı Madde Taşıyan Taşıt Giremez"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/18.jpg",
+      "text": "Tehlikeli Madde Taşıyan Taşıt Giremez"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/19.jpg",
+      "text": "Su Kirletici Madde Taşıyan Taşıt Giremez"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/20.jpg",
+      "text": "Motorlu Taşıt Giremez"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/21.jpg",
+      "text": "Taşıt Giremez"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/22.jpg",
+      "text": "Genişliği Belirtilen Metreden Fazla Olan Taşıt Giremez"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/23.jpg",
+      "text": "Yüksekliği Belirtilen Metreden Fazla Olan Taşıt Giremez"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/24.jpg",
+      "text": "Uzunluğu Belirtilen Metreden Fazla Olan Taşıt Giremez"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/25.jpg",
+      "text": "Dingil Başına Belirtilen Tondan Fazla Yük Düşen Taşıt Giremez"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/26.jpg",
+      "text": "Yüklü Ağırlığı Belirtilen Tondan Fazla Olan Taşıt Giremez"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/27.jpg",
+      "text": "Öndeki Taşıt Belirtilen Metreden Daha Yakın Takip Edilemez"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/28.jpg",
+      "text": "Sağa Dönülemez"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/29.jpg",
+      "text": "Sola Dönülemez"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/30.jpg",
+      "text": "U Dönüşü Yapılamaz"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/31.jpg",
+      "text": "Öndeki Taşıtı Geçmek Yasaktır"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/32.jpg",
+      "text": "Kamyonlar İçin Öndeki Taşıtı Geçmek Yasaktır"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/33.jpg",
+      "text": "Azami Hız Sınırlaması"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/34.jpg",
+      "text": "Okul Bölgesi Azami Hız Sınırı"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/35.jpg",
+      "text": "Sesli İkaz Cihazlarının Kullanılması Yasaktır"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/36.jpg",
+      "text": "Gümrük (Durmadan Geçmek Yasak)"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/37.jpg",
+      "text": "Bütün Yasaklamalar ve Kısıtlamaların Sonu"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/38.jpg",
+      "text": "Hız Sınırlaması Sonu"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/39.jpg",
+      "text": "Geçme Yasağı Sonu"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/40.jpg",
+      "text": "Kamyonlar İçin Geçme Yasağı Sonu"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/41.jpg",
+      "text": "Sağa Mecburi Yön"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/42.jpg",
+      "text": "Sola Mecburi Yön"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/43.jpg",
+      "text": "İleri Mecburi Yön"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/44.jpg",
+      "text": "İleri Ve Sağa Mecburi Yön"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/45.jpg",
+      "text": "İleri Ve Sola Mecburi Yön"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/46.jpg",
+      "text": "Sağa Ve Sola Mecburi Yön"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/47.jpg",
+      "text": "İleriden Sağa Mecburi Yön"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/48.jpg",
+      "text": "İleriden Sola Mecburi Yön"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/49.jpg",
+      "text": "Sağdan Gidiniz"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/50.jpg",
+      "text": "Soldan Gidiniz"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/51.jpg",
+      "text": "Her İki Yandan Gidiniz"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/52.jpg",
+      "text": "Ada Etrafında Dönünüz"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/53.jpg",
+      "text": "Mecburi Bisiklet Yolu"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/54.jpg",
+      "text": "Mecburi Bisiklet Yolu Sonu"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/55.jpg",
+      "text": "Mecburi Yaya Yolu"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/56.jpg",
+      "text": "Mecburi Yaya Yolu Sonu"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/57.jpg",
+      "text": "Mecburi Atlı Yolu"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/58.jpg",
+      "text": "Mecburi Atlı Yolu Sonu"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/59.jpg",
+      "text": "Mecburi Asgari Hız"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/60.jpg",
+      "text": "Mecburi Asgari Hız Sonu"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/61.jpg",
+      "text": "Zincir Takmak Mecburidir"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/62.jpg",
+      "text": "Zincir Takma Mecburiyeti Sonu"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/63.jpg",
+      "text": "Tehlikeli Madde Taşıyan Taşıtların İzleyecekleri Mecburi Yön"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/64.jpg",
+      "text": "Yayalar ve Bisikletliler Tarafından Kullanılabilen Yol"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/65.jpg",
+      "text": "Yayalar ve Bisikletliler Tarafından Kullanılabilen Yolun Sonu"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/66.jpg",
+      "text": "Yayalar ve Bisikletliler için Ayrı Ayrı Kullanılabilen Yol"
+    },
+    {
+      "image": "https://ehliyet.io/img/tanzim/67.jpg",
+      "text": "Yayalar ve Bisikletliler için Ayrı Ayrı Kullanılabilen Yolun Sonu"
+    }
+  ]

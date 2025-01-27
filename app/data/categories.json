@@ -1,0 +1,24 @@
+{
+  "categories": [
+    {
+      "id": 1,
+      "name": "Hepsi",
+      "filter": "all"
+    },
+    {
+      "id": 2,
+      "name": "Çoktan Seçmeli",
+      "filter": "exam"
+    },
+    {
+      "id": 3,
+      "name": "Eşleştirme",
+      "filter": "query"
+    },
+    {
+      "id": 4,
+      "name": "Görsel Eşleştir",
+      "filter": "lesson"
+    }
+  ]
+}
