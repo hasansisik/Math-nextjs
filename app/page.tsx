@@ -4,6 +4,7 @@ import categories from "./data/categories.json";
 import exams from "@/exams.json";
 import matching from "@/matching.json";
 import placement from "@/placement.json";
+import fraction from "@/fraction.json";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
@@ -182,7 +183,7 @@ export default function Home() {
                  <CardHeader>
                    <div className="relative w-full h-32 mb-4">
                      <Image
-                       src="/matching.jpg"
+                       src="/examBanner1.jpg"
                        alt="Course Image"
                        layout="fill"
                        objectFit="cover"
@@ -225,6 +226,69 @@ export default function Home() {
                            {format(new Date(place.createdAt), "dd/MM/yyyy")}
                          </p>
                          <p>Soru Sayısı: {place.questionsCount}</p>
+                       </div>
+                     </div>
+                   </div>
+                 </CardContent>
+               </Card>
+             ))}
+           </div>
+          )}
+          {selectedFilter === "fraction" && (
+             <div className="flex flex-col sm:flex-row gap-6 w-full">
+             {/* Sınavlar Kartı */}
+             {fraction.map((frac) => (
+               <Card
+                 key={frac.id}
+                 className="flex-1 cursor-pointer hover:shadow-lg transition-shadow"
+                 onClick={() => router.push(`/fraction/${frac.id}`)}
+               >
+                 <CardHeader>
+                   <div className="relative w-full h-32 mb-4">
+                     <Image
+                       src="/examBanner3.jpg"
+                       alt="Course Image"
+                       layout="fill"
+                       objectFit="cover"
+                       className="rounded-lg"
+                     />
+                   </div>
+                   <CardTitle>{frac.title}</CardTitle>
+                 </CardHeader>
+                 <CardContent>
+                   <div className="flex flex-col">
+                     <div className="flex justify-between">
+                       <div className="flex text-center flex-row gap-4">
+                         <CircularProgress
+                           value={frac.accuracy}
+                           color="#34d399"
+                         />
+                         <div>
+                           <p>Zorluk</p>
+                           <p>{frac.accuracy}%</p>
+                         </div>
+                       </div>
+                       <div className="flex text-center flex-row  gap-2">
+                         <CircularProgress
+                           value={frac.completionRate}
+                           color="#34d399"
+                         />
+                         <div>
+                           <p>Başarı Yüzdesi</p>
+                           <p>{frac.completionRate}%</p>
+                         </div>
+                       </div>
+                     </div>
+                     <div className="flex flex-col justify-between mt-4">
+                       <p className="px-4 py-1 bg-gray-100 rounded-full w-fit">
+                         {frac.category}
+                       </p>
+                       <div className="pt-4 flex flex-row justify-between">
+                         <p className="text-base">
+                         Oluşturulma tarihi:{" "}
+                           {format(new Date(frac.createdAt), "dd/MM/yyyy")}
+                         </p>
+                         <p>Soru Sayısı: {frac.questionsCount}</p>
                        </div>
                      </div>
                    </div>
