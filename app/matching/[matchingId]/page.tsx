@@ -13,7 +13,7 @@ import {
   useDraggable,
   useDroppable,
 } from "@dnd-kit/core";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import useSound from "use-sound";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -126,6 +126,33 @@ export default function MatchingPage({
 
   const [matchStatus, setMatchStatus] = useState<{ [key: string]: boolean }>({});
 
+  const [timer, setTimer] = useState({ minutes: 0, seconds: 0 });
+  const [timerActive, setTimerActive] = useState(true);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+
+    if (timerActive) {
+      interval = setInterval(() => {
+        setTimer(prev => {
+          const newSeconds = prev.seconds + 1;
+          if (newSeconds === 60) {
+            return {
+              minutes: prev.minutes + 1,
+              seconds: 0
+            };
+          }
+          return {
+            ...prev,
+            seconds: newSeconds
+          };
+        });
+      }, 1000);
+    }
+
+    return () => clearInterval(interval);
+  }, [timerActive]);
+
   function handleDragStart() {
     playPickupSound();
   }
@@ -181,6 +208,7 @@ export default function MatchingPage({
   };
 
   const handleSubmit = () => {
+    setTimerActive(false); // Timer'ı durdur
     let correctCount = 0;
     let incorrectCount = 0;
 
@@ -210,6 +238,7 @@ export default function MatchingPage({
   };
 
   const handleDialogClose = () => {
+    setTimer({ minutes: 0, seconds: 0 }); // Timer'ı sıfırla
     setShowResults(false);
     router.push('/');
   };
@@ -234,25 +263,41 @@ export default function MatchingPage({
 
   return (
     <div className="flex flex-col m-5">
-      <div className="flex items-center mx-3">
-        <div className="p-2 bg-slate-100 mr-3 rounded-sm">
-          <X />
-        </div>
+      <div className="flex items-center justify-between mx-3">
+        <div className='flex items-center flex-row'>
+          <div 
+            className="p-2 bg-slate-100 mr-3 rounded-sm cursor-pointer hover:bg-slate-200" 
+            onClick={() => router.push('/')}
+          >
+            <X />
+          </div>
         <AlarmClock color="gray" className="mr-2" />
         <div className="flex items-center gap-1">
-          <span className="mr-2">Time left:</span>
-          <span className="px-3 py-1 bg-black text-white rounded-sm">01</span>
+          <span className="mr-2">Geçen Süre:</span>
+          <span className="px-3 py-1 bg-black text-white rounded-sm">
+            {String(timer.minutes).padStart(2, '0')}
+          </span>
           <span>:</span>
-          <span className="px-3 py-1 bg-black text-white rounded-sm">60</span>
+          <span className="px-3 py-1 bg-black text-white rounded-sm">
+            {String(timer.seconds).padStart(2, '0')}
+          </span>
         </div>
+        </div>
+        <Button 
+          variant="destructive" 
+          onClick={handleSubmit}
+        >
+          Sınavı Bitir
+        </Button>
       </div>
+      
       <div className="flex flex-col mx-auto pt-10  gap-2">
-        <div className="flex flex-row items-start gap-2">
+        <div className="flex flex-row items-center gap-2">
           <div className="p-1 bg-black rounded-sm">
             <GalleryVerticalEnd color="white" />
           </div>
           <p className="font-bold">{match.title}</p>
-          <p>{currentQuestionIndex + 1} of {match.questionsCount}</p>
+          <p>{currentQuestionIndex + 1} ile {match.questionsCount}</p>
         </div>
 
         <h2 className="pt-5 font-bold text-lg">{questions[currentQuestionIndex].title}</h2>

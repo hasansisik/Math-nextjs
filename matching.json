@@ -36,6 +36,21 @@
           "Kare",
           "Daire"
         ]
+      },
+      {
+        "title": "3) Aşağıdaki verilen işlemlerini sonuçları ile eşleştiriniz",
+        "question": [
+          "Onyedi milyon yüz iki bin elli dört",
+          "Yüz yedi milyon on iki bin beş yüz dört",
+          "Yüz yetmiş milyon yüz yirmi bin beş yüz kırk"
+        ],
+        "correctAnswer": [
+          "170 210 540",
+          "170 120 540",
+          "17 120 054",
+          "107 012 504",
+          "17 120 501"
+        ]
       }
     ]
   }
