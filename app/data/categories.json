@@ -13,7 +13,7 @@
     {
       "id": 3,
       "name": "Eşleştirme",
-      "filter": "query"
+      "filter": "matching"
     },
     {
       "id": 4,
