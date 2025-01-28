@@ -19,7 +19,6 @@ import {
 const FractionPage = ({ params }: { params: Usable<{ fractionId: string }> }) => {
   const router = useRouter();
   const unwrappedParams = use(params);
-  const match = fractionData.find((m) => m.id === unwrappedParams.fractionId);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showResults, setShowResults] = useState(false);
   const [matchResults, setMatchResults] = useState({
@@ -31,9 +30,41 @@ const FractionPage = ({ params }: { params: Usable<{ fractionId: string }> }) =>
   const [timer, setTimer] = useState({ minutes: 0, seconds: 0 });
   const [timerActive, setTimerActive] = useState(true);
   const [userAnswers, setUserAnswers] = useState<{ [key: string]: { numerator: string; denominator: string } }>({});
-  
   const [playCorrectSound] = useSound("/drop.mp3");
   const [playWrongSound] = useSound("/pickup.mp3");
+
+  // Timer effect
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+
+    if (timerActive) {
+      interval = setInterval(() => {
+        setTimer((prev) => {
+          const newSeconds = prev.seconds + 1;
+          if (newSeconds === 60) {
+            return {
+              minutes: prev.minutes + 1,
+              seconds: 0,
+            };
+          }
+          return {
+            ...prev,
+            seconds: newSeconds,
+          };
+        });
+      }, 1000);
+    }
+
+    return () => clearInterval(interval);
+  }, [timerActive]);
+
+  const match = fractionData.find((m) => m.id === unwrappedParams.fractionId);
+  
+  // Redirect if match is not found
+  if (!match) {
+    router.push('/');
+    return null;
+  }
 
   const handleAnswerChange = (index: number, part: string, value: string) => {
     const newAnswers = {
@@ -73,35 +104,37 @@ const FractionPage = ({ params }: { params: Usable<{ fractionId: string }> }) =>
     }
   };
 
-  // Timer için useEffect
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-
-    if (timerActive) {
-      interval = setInterval(() => {
-        setTimer((prev) => {
-          const newSeconds = prev.seconds + 1;
-          if (newSeconds === 60) {
-            return {
-              minutes: prev.minutes + 1,
-              seconds: 0,
-            };
-          }
-          return {
-            ...prev,
-            seconds: newSeconds,
-          };
-        });
-      }, 1000);
-    }
-
-    return () => clearInterval(interval);
-  }, [timerActive]);
-
-  if (!match) return <div>Yükleniyor...</div>;
-
   const handleSubmit = () => {
     setTimerActive(false);
+
+    // Calculate results
+    let correct = 0;
+    let incorrect = 0;
+
+    match.questions.forEach((question) => {
+      question.question.forEach((q, index) => {
+        const userAnswer = userAnswers[index];
+        const [correctNumerator, correctDenominator] = q.answer.split('/');
+        
+        if (userAnswer) {
+          if (userAnswer.numerator === correctNumerator && userAnswer.denominator === correctDenominator) {
+            correct++;
+          } else {
+            incorrect++;
+          }
+        }
+      });
+    });
+
+    const totalQuestions = match.questions.reduce((acc, q) => acc + q.question.length, 0);
+    const totalPoints = (correct / totalQuestions) * 100;
+    
+    setMatchResults({
+      correct,
+      incorrect,
+      totalPoints,
+      passed: totalPoints >= 70 // Assuming 70% is the passing threshold
+    });
 
     setShowResults(true);
   };
