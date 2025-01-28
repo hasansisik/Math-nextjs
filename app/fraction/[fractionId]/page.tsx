@@ -1,23 +1,12 @@
 "use client";
-import { use, Usable } from "react";
+import { Usable } from "react";
 import fractionData from "@/fraction.json";
 import { AlarmClock, AlignVerticalJustifyCenter, X } from "lucide-react";
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-  useDraggable,
-  useDroppable,
-} from "@dnd-kit/core";
-import { useState, useEffect } from "react";
-import useSound from "use-sound";
+import { useState, useEffect, use } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useRouter } from "next/navigation";
+import useSound from "use-sound";
 import {
   Dialog,
   DialogContent,
@@ -27,65 +16,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-function Draggable({
-  id,
-  children,
-}: {
-  id: string;
-  children: React.ReactNode;
-}) {
-  const { attributes, listeners, setNodeRef, transform } = useDraggable({
-    id: id,
-  });
-
-  const style = transform
-    ? {
-        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-      }
-    : undefined;
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...listeners}
-      {...attributes}
-      className="cursor-move"
-    >
-      {children}
-    </div>
-  );
-}
-
-function Droppable({
-  id,
-  children,
-}: {
-  id: string;
-  children: React.ReactNode;
-}) {
-  const { isOver, setNodeRef } = useDroppable({
-    id: id,
-  });
-
-  return (
-    <div
-      ref={setNodeRef}
-      className={`h-12 border-2 border-dashed rounded-full flex items-center justify-center min-w-[200px]
-        ${isOver ? "border-blue-500 bg-blue-50" : "border-gray-300"}`}
-    >
-      {children}
-    </div>
-  );
-}
-
-const MatchingPage = ({ params }: { params: Usable<{ fractionId: string }> }) => {
+const FractionPage = ({ params }: { params: Usable<{ fractionId: string }> }) => {
   const router = useRouter();
   const unwrappedParams = use(params);
   const match = fractionData.find((m) => m.id === unwrappedParams.fractionId);
-
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [items, setItems] = useState<string[]>([]);
   const [showResults, setShowResults] = useState(false);
   const [matchResults, setMatchResults] = useState({
     correct: 0,
@@ -95,24 +30,48 @@ const MatchingPage = ({ params }: { params: Usable<{ fractionId: string }> }) =>
   });
   const [timer, setTimer] = useState({ minutes: 0, seconds: 0 });
   const [timerActive, setTimerActive] = useState(true);
-  const [droppedItems, setDroppedItems] = useState<{ [key: string]: string }>({});
+  const [userAnswers, setUserAnswers] = useState<{ [key: string]: { numerator: string; denominator: string } }>({});
+  
+  const [playCorrectSound] = useSound("/drop.mp3");
+  const [playWrongSound] = useSound("/pickup.mp3");
 
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor)
-  );
-  const [playPickupSound] = useSound("/pickup.mp3");
-  const [playDropSound] = useSound("/drop.mp3");
+  const handleAnswerChange = (index: number, part: string, value: string) => {
+    const newAnswers = {
+      ...userAnswers,
+      [index]: {
+        ...userAnswers[index],
+        [part]: value
+      }
+    };
+    setUserAnswers(newAnswers);
 
-  // Items için useEffect
-  useEffect(() => {
-    if (match) {
-      const shuffledItems = [...match.questions[currentQuestionIndex].correctAnswer]
-        .map(String)
-        .sort(() => 0.5 - Math.random());
-      setItems(shuffledItems);
+    // Get correct answer
+    const answer = match.questions[currentQuestionIndex].question[index].answer;
+    const [correctNumerator, correctDenominator] = answer.split('/');
+    
+    // Check if the current input matches the correct answer
+    if (part === "numerator" && value === correctNumerator) {
+      playCorrectSound();
+    } else if (part === "denominator" && value === correctDenominator) {
+      playCorrectSound();
+    } else if (value !== "") {
+      playWrongSound();
     }
-  }, [match, currentQuestionIndex]);
+  };
+
+  const getInputStyle = (index: number, part: "numerator" | "denominator") => {
+    const answer = match.questions[currentQuestionIndex].question[index].answer;
+    const [correctNumerator, correctDenominator] = answer.split('/');
+    const userAnswer = userAnswers[index]?.[part];
+
+    if (!userAnswer) return "border-gray-400";
+
+    if (part === "numerator") {
+      return userAnswer === correctNumerator ? "border-green-500 bg-green-50" : "border-red-500 bg-red-50";
+    } else {
+      return userAnswer === correctDenominator ? "border-green-500 bg-green-50" : "border-red-500 bg-red-50";
+    }
+  };
 
   // Timer için useEffect
   useEffect(() => {
@@ -141,47 +100,14 @@ const MatchingPage = ({ params }: { params: Usable<{ fractionId: string }> }) =>
 
   if (!match) return <div>Yükleniyor...</div>;
 
-  function handleDragStart() {
-    playPickupSound();
-  }
-
-  function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
-    if (!over) return;
-
-    const activeId = active.id as string;
-    const overId = over.id as string;
-
-    // Yeni konuma yerleştir
-    setDroppedItems((prev) => ({
-      ...prev,
-      [overId]: activeId,
-    }));
-    playDropSound();
-  }
-
   const handleSubmit = () => {
     setTimerActive(false);
-    const currentQuestion = match.questions[currentQuestionIndex];
-    const correctOrder = currentQuestion.correctAnswer.map(String);
-
-    const isCorrect =
-      currentQuestion.type === ">"
-        ? JSON.stringify(items) === JSON.stringify(correctOrder)
-        : JSON.stringify(items) === JSON.stringify([...correctOrder].reverse());
-
-    setMatchResults({
-      correct: isCorrect ? 1 : 0,
-      incorrect: isCorrect ? 0 : 1,
-      totalPoints: isCorrect ? 100 : 0,
-      passed: isCorrect,
-    });
 
     setShowResults(true);
   };
 
   const handleDialogClose = () => {
-    setTimer({ minutes: 0, seconds: 0 }); 
+    setTimer({ minutes: 0, seconds: 0 });
     setShowResults(false);
     router.push("/");
   };
@@ -231,78 +157,40 @@ const MatchingPage = ({ params }: { params: Usable<{ fractionId: string }> }) =>
           Sürükle bırak yaparak sorular ve cevaplarını eşleştiriniz.
         </p>
 
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-          onDragStart={handleDragStart}
-        >
-          <div className="flex flex-col pt-10 gap-8">
-            <div className="border-b pb-4">
-              {/* Yuva alanı */}
-              <div className="flex flex-wrap gap-4 mb-4">
-                {match.questions[currentQuestionIndex].correctAnswer.map(
-                  (correctAnswer, index) => (
-                    <div key={index} className="flex items-center">
-                      <Droppable id={String(correctAnswer)}>
-                        {droppedItems[String(correctAnswer)] && (
-                          <div
-                            className={`p-2 w-full h-full text-center rounded-full
-                        ${
-                          droppedItems[String(correctAnswer)] ===
-                          String(correctAnswer)
-                            ? "bg-green-200"
-                            : "bg-red-200"
-                        }`}
-                          >
-                            {droppedItems[String(correctAnswer)]}
-                          </div>
-                        )}
-                      </Droppable>
-                      {index <
-                        match.questions[currentQuestionIndex].correctAnswer
-                          .length -
-                          1 && (
-                        <div className="text-2xl font-bold text-gray-500 mx-2">
-                          {match.questions[currentQuestionIndex].type}
-                        </div>
-                      )}
-                    </div>
-                  )
-                )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+          {match.questions[currentQuestionIndex].question.map((q, index) => (
+            <div key={index} className="bg-white p-6 rounded-lg border shadow-sm flex items-center justify-center h-[200px]">
+              <div className="flex items-center justify-center gap-4">
+                <div className="flex items-center gap-1">
+                  <span className="text-xl font-medium">{q.parts.A}</span>
+                  <div className="flex flex-col items-center mx-1">
+                    <span className="text-lg">{q.parts.C}</span>
+                    <div className="w-6 h-0.5 bg-black my-1"></div>
+                    <span className="text-lg">{q.parts.B}</span>
+                  </div>
+                </div>
+                <span className="mx-3 text-xl">=</span>
+                <div className="flex flex-col items-center">
+                  <input
+                    type="text"
+                    className={`w-16 h-10 border-2 border-dashed rounded-lg text-center text-lg focus:ring-2 focus:ring-primary/20 transition-colors ${getInputStyle(index, "numerator")}`}
+                    value={userAnswers[index]?.numerator || ""}
+                    onChange={(e) => handleAnswerChange(index, "numerator", e.target.value)}
+                    placeholder="?"
+                  />
+                  <div className="w-16 h-0.5 bg-black my-2"></div>
+                  <input
+                    type="text"
+                    className={`w-16 h-10 border-2 border-dashed rounded-lg text-center text-lg focus:ring-2 focus:ring-primary/20 transition-colors ${getInputStyle(index, "denominator")}`}
+                    value={userAnswers[index]?.denominator || ""}
+                    onChange={(e) => handleAnswerChange(index, "denominator", e.target.value)}
+                    placeholder="?"
+                  />
+                </div>
               </div>
             </div>
-
-            {/* Taşınabilir öğeler */}
-            <div className="flex flex-wrap justify-center items-center gap-4 mt-4 sticky bottom-4 bg-white p-4 border rounded shadow-lg w-full">
-              {items.map((item) => (
-                <Draggable key={item} id={item}>
-                  <div
-                    className={`
-                    flex items-center justify-center w-[200px] h-12 rounded-full
-                    ${
-                      Object.values(droppedItems).includes(item)
-                        ? "opacity-50"
-                        : ""
-                    }
-                    ${
-                      Object.entries(droppedItems).some(
-                        ([key, value]) => value === item && key === item
-                      )
-                        ? "bg-green-200" // doğru yere yerleştirilmiş
-                        : Object.values(droppedItems).includes(item)
-                        ? "bg-red-200"   // yanlış yere yerleştirilmiş
-                        : "bg-blue-100"  // henüz yerleştirilmemiş
-                    }
-                  `}
-                  >
-                    {item}
-                  </div>
-                </Draggable>
-              ))}
-            </div>
-          </div>
-        </DndContext>
+          ))}
+        </div>
 
         <div className="mt-6 flex w-full justify-between">
           <Button
@@ -384,4 +272,4 @@ const MatchingPage = ({ params }: { params: Usable<{ fractionId: string }> }) =>
   );
 };
 
-export default MatchingPage;
+export default FractionPage;

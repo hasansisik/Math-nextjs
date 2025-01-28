@@ -10,16 +10,86 @@
     "desc": "2025 Ocak Ayı Sınav-1 Kurstanbul tarafından e-sınav müfredatına uygun olarak hazırlanmıştır.",
     "questions": [
       {
-        "type": ">",
-        "title": "1) Aşağıdaki sayıları büyükten küçüğe sıralayınız",
-        "correctAnswer": [12, 3, -1, -5],
-        "direction": "Büyükten küçüğe doğru sıralayınız"
+        "title": "1) Aşağıdaki tam sayılı kesirleri bileşik kesirlere çeviriniz",
+        "question": [
+          {
+            "mixedFraction": "6x1/2",
+            "parts": {
+              "A": "6",
+              "B": "2",
+              "C": "1"
+            },
+            "answer": "13/2"
+          },
+          {
+            "mixedFraction": "2x3/4",
+            "parts": {
+              "A": "2",
+              "B": "4",
+              "C": "3"
+            },
+            "answer": "11/4"
+          },
+          {
+            "mixedFraction": "4x1/3",
+            "parts": {
+              "A": "4",
+              "B": "3",
+              "C": "1"
+            },
+            "answer": "13/3"
+          },
+          {
+            "mixedFraction": "5x2/5",
+            "parts": {
+              "A": "5",
+              "B": "5",
+              "C": "2"
+            },
+            "answer": "27/5"
+          }
+        ]
       },
       {
-        "type": "<",
-        "title": "2) Aşağıdaki sayıları küçükten büyüğe sıralayınız",
-        "correctAnswer": [-8, -3, 0, 4, 7],
-        "direction": "Küçükten büyüğe doğru sıralayınız"
+        "title": "1) Aşağıdaki tam sayılı kesirleri bileşik kesirlere çeviriniz",
+        "question": [
+          {
+            "mixedFraction": "6x1/2",
+            "parts": {
+              "A": "6",
+              "B": "2",
+              "C": "1"
+            },
+            "answer": "13/2"
+          },
+          {
+            "mixedFraction": "2x3/4",
+            "parts": {
+              "A": "2",
+              "B": "4",
+              "C": "3"
+            },
+            "answer": "11/4"
+          },
+          {
+            "mixedFraction": "4x1/3",
+            "parts": {
+              "A": "4",
+              "B": "3",
+              "C": "1"
+            },
+            "answer": "13/3"
+          },
+          {
+            "mixedFraction": "5x2/5",
+            "parts": {
+              "A": "5",
+              "B": "5",
+              "C": "2"
+            },
+            "answer": "27/5"
+          }
+        ]
       }
     ]
   }
