@@ -1,7 +1,7 @@
 "use client";
 import { use, Usable } from "react";
 import placementData from "@/placement.json";
-import { AlarmClock, GalleryVerticalEnd, X } from "lucide-react";
+import { AlarmClock, AlignHorizontalDistributeStart, X } from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -199,11 +199,11 @@ const MatchingPage = ({ params }: { params: Usable<{ placementId: string }> }) =
           <AlarmClock color="gray" className="mr-2" />
           <div className="flex items-center gap-1">
             <span className="mr-2">Geçen Süre:</span>
-            <span className="px-3 py-1 bg-black text-white rounded-sm">
+            <span className="px-3 py-1 bg-primary text-white rounded-sm">
               {String(timer.minutes).padStart(2, "0")}
             </span>
             <span>:</span>
-            <span className="px-3 py-1 bg-black text-white rounded-sm">
+            <span className="px-3 py-1 bg-primary text-white rounded-sm">
               {String(timer.seconds).padStart(2, "0")}
             </span>
           </div>
@@ -215,8 +215,8 @@ const MatchingPage = ({ params }: { params: Usable<{ placementId: string }> }) =
 
       <div className="flex flex-col mx-auto pt-10  gap-2">
         <div className="flex flex-row items-center gap-2">
-          <div className="p-1 bg-black rounded-sm">
-            <GalleryVerticalEnd color="white" />
+          <div className="p-1 bg-primary rounded-sm">
+            <AlignHorizontalDistributeStart color="white" />
           </div>
           <p className="font-bold">{match.title}</p>
           <p>

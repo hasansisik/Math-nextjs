@@ -1,7 +1,7 @@
 "use client";
 import { use, Usable } from "react";
 import fractionData from "@/fraction.json";
-import { AlarmClock, GalleryVerticalEnd, X } from "lucide-react";
+import { AlarmClock, AlignVerticalJustifyCenter, X } from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -79,10 +79,10 @@ function Droppable({
   );
 }
 
-const MatchingPage = ({ params }: { params: Usable<{ placementId: string }> }) => {
+const MatchingPage = ({ params }: { params: Usable<{ fractionId: string }> }) => {
   const router = useRouter();
   const unwrappedParams = use(params);
-  const match = fractionData.find((m) => m.id === unwrappedParams.placementId);
+  const match = fractionData.find((m) => m.id === unwrappedParams.fractionId);
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [items, setItems] = useState<string[]>([]);
@@ -199,11 +199,11 @@ const MatchingPage = ({ params }: { params: Usable<{ placementId: string }> }) =
           <AlarmClock color="gray" className="mr-2" />
           <div className="flex items-center gap-1">
             <span className="mr-2">Geçen Süre:</span>
-            <span className="px-3 py-1 bg-black text-white rounded-sm">
+            <span className="px-3 py-1 bg-primary text-white rounded-sm">
               {String(timer.minutes).padStart(2, "0")}
             </span>
             <span>:</span>
-            <span className="px-3 py-1 bg-black text-white rounded-sm">
+            <span className="px-3 py-1 bg-primary text-white rounded-sm">
               {String(timer.seconds).padStart(2, "0")}
             </span>
           </div>
@@ -215,8 +215,8 @@ const MatchingPage = ({ params }: { params: Usable<{ placementId: string }> }) =
 
       <div className="flex flex-col mx-auto pt-10  gap-2">
         <div className="flex flex-row items-center gap-2">
-          <div className="p-1 bg-black rounded-sm">
-            <GalleryVerticalEnd color="white" />
+          <div className="p-1 bg-primary rounded-sm">
+            <AlignVerticalJustifyCenter color="white" />
           </div>
           <p className="font-bold">{match.title}</p>
           <p>
