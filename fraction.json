@@ -1,13 +1,12 @@
 [
   {
     "id": "1234345",
-    "title": "Sıralama Soruları",
+    "title": "Kesir Soruları",
     "accuracy": 40,
     "completionRate": 60,
-    "category": "Sıralama",
+    "category": "Kesir",
     "createdAt": "2023-10-01T12:00:00Z",
     "questionsCount": 10,
-    "desc": "2025 Ocak Ayı Sınav-1 Kurstanbul tarafından e-sınav müfredatına uygun olarak hazırlanmıştır.",
     "questions": [
       {
         "title": "1) Aşağıdaki tam sayılı kesirleri bileşik kesirlere çeviriniz",

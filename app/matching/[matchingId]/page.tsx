@@ -1,4 +1,5 @@
 "use client";
+import { use } from "react";
 import matchingData from "@/matching.json";
 import { AlarmClock, GalleryVerticalEnd, X } from "lucide-react";
 import {
@@ -12,11 +13,10 @@ import {
   useDraggable,
   useDroppable,
 } from "@dnd-kit/core";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import useSound from "use-sound";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { use } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Dialog,
@@ -111,6 +111,9 @@ export default function MatchingPage({
   const [timer, setTimer] = useState({ minutes: 0, seconds: 0 });
   const [timerActive, setTimerActive] = useState(true);
   const [answers, setAnswers] = useState<string[]>([]);
+  
+  // Shuffle answers for display
+  const shuffledAnswers = useMemo(() => answers, [answers]);
 
   // Hook tanımlamaları
   const sensors = useSensors(
@@ -164,12 +167,12 @@ export default function MatchingPage({
     const answerId = active.id as string;
     const dropZoneId = over.id as string;
 
-    // Parse the dropZone id to get question index
-    const [answerIndex] = dropZoneId.split('-').map(Number);
+    // Parse the dropZone id to get question and answer indices
+    const [_, questionIndex, answerIndex] = dropZoneId.split('-').map(Number);
     
     // Check if the answer is correct
     const isCorrect = answers[parseInt(answerId)] === 
-      questions[currentQuestionIndex].correctAnswer[answerIndex];
+      questions[questionIndex].correctAnswer[answerIndex];
 
     if (isCorrect) {
       playDropSound();
@@ -336,7 +339,7 @@ export default function MatchingPage({
             </div>
 
             <div className="flex flex-wrap gap-2 mt-4 sticky bottom-4 bg-white p-4 border rounded shadow-lg">
-              {answers.map((answer, index) => (
+              {shuffledAnswers.map((answer, index) => (
                 <Draggable key={index} id={index.toString()}>
                   <div
                     className={`flex items-center justify-center min-w-[200px] h-12 rounded
