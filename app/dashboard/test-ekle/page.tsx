@@ -1,296 +1,379 @@
 "use client"
 
 import { useState } from "react"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useFieldArray, useForm } from "react-hook-form"
-import * as z from "zod"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useDispatch } from "react-redux"
+import { createExam, createMatching, createPlacement, createFraction } from "@/redux/actions/questionActions"
+import { useToast } from "@/hooks/use-toast"
+import { Formik, Form, Field, FieldArray } from 'formik'
 
 const questionTypes = [
-  { value: "Çoktan Seçmeli", label: "Çoktan Seçmeli Test" },
-  { value: "Eşleştirme", label: "Eşleştirme Soruları" },
-  { value: "Sıralama", label: "Sıralama Soruları" },
-  { value: "Kesir", label: "Kesir Soruları" },
+  { value: "Çoktan Seçmeli", label: "Çoktan Seçmeli Test",type:"exams" },
+  { value: "Eşleştirme", label: "Eşleştirme Soruları",type:"matchings" },
+  { value: "Sıralama", label: "Sıralama Soruları",type:"placements" },
+  { value: "Kesir", label: "Kesir Soruları",type:"fractions" },    
 ]
 
-const formSchema = z.object({
-  title: z.string().min(2, { message: "Başlık en az 2 karakter olmalıdır" }),
-  category: z.string(),
-  description: z.string().optional(),
-  questions: z.array(
-    z.object({
-      title: z.string().min(2, { message: "Soru başlığı en az 2 karakter olmalıdır" }),
-      question: z.string().min(2, { message: "Soru en az 2 karakter olmalıdır" }),
-      options: z.array(z.string()).optional(),
-      correctAnswer: z.string().or(z.array(z.string())).or(z.array(z.number())),
-      fractions: z.array(
-        z.object({
-          expression: z.string(),
-          answer: z.string()
-        })
-      ).optional(),
-    })
-  ),
-})
+const baseInitialValues = {
+  title: "",
+  category: "",
+  description: "",
+  accuracy: 0,
+  completionRate: 0
+}
+
+const getInitialValues = (type: string) => {
+  switch (type) {
+    case "exams":
+      return {
+        ...baseInitialValues,
+        questions: [{
+          question: "",
+          options: ["", "", "", ""],
+          correctAnswer: ""
+        }]
+      }
+    case "matchings":
+      return {
+        ...baseInitialValues,
+        questions: [{
+          title: "",
+          question: [],
+          correctAnswer: []
+        }]
+      }
+    case "placements":
+      return {
+        ...baseInitialValues,
+        questions: [{
+          title: "",
+          type: ">",
+          correctAnswer: [],
+          direction: "Büyükten küçüğe doğru sıralayınız"
+        }]
+      }
+    case "fractions":
+      return {
+        ...baseInitialValues,
+        questions: [{
+          title: "",
+          question: [{
+            mixedFraction: "",
+            answer: ""
+          }]
+        }]
+      }
+    default:
+      return {
+        ...baseInitialValues,
+        questions: [{
+          title: "",
+          question: "",
+          options: [],
+          correctAnswer: "",
+          fractions: []
+        }]
+      }
+  }
+}
 
 export default function TestEklePage() {
   const [selectedCategory, setSelectedCategory] = useState("")
+  const [selectedType, setSelectedType] = useState("")
+  const [initialValues, setInitialValues] = useState(getInitialValues(""))
+  const dispatch = useDispatch()
+  const { toast } = useToast()
 
-  const form = useForm({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      title: "",
-      category: "",
-      description: "",
-      questions: [{ title: "", question: "", options: [], correctAnswer: "", fractions: [] }],
-    },
-  })
+  const handleSubmit = async (values: any, { resetForm }: any) => {
+    console.log("handleSubmit çalıştı", values);
+    console.log("selectedCategory:", selectedCategory);
+    console.log("selectedType:", selectedType);
+    
+    if (!selectedCategory || !selectedType) {
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "Lütfen bir soru tipi seçin",
+      })
+      return
+    }
 
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: "questions",
-  })
+    try {
+      let formattedValues;
+      
+      if (selectedType === "matchings") {
+        formattedValues = {
+          title: values.title,
+          description: values.description,
+          accuracy: values.accuracy,
+          completionRate: values.completionRate,
+          questionsCount: values.questions.length,
+          questions: values.questions.map((q: any) => ({
+            title: q.title,
+            question: Array.isArray(q.question) ? q.question : [],
+            correctAnswer: Array.isArray(q.correctAnswer) ? q.correctAnswer : []
+          }))
+        };
+      } else if (selectedType === "placements") {
+        formattedValues = {
+          title: values.title,
+          description: values.description,
+          accuracy: values.accuracy,
+          completionRate: values.completionRate,
+          category: "Sıralama",
+          questionsCount: values.questions.length,
+          questions: values.questions.map((q: any) => ({
+            title: q.title,
+            type: q.direction === "Büyükten küçüğe doğru sıralayınız" ? ">" : "<",
+            correctAnswer: Array.isArray(q.correctAnswer) ? q.correctAnswer.map(Number) : [],
+            direction: q.direction
+          }))
+        };
+      } else {
+        formattedValues = {
+          title: values.title,
+          description: values.description,
+          accuracy: values.accuracy,
+          completionRate: values.completionRate,
+          questionsCount: values.questions.length,
+          questions: values.questions.map((q: any) => ({
+            question: q.question || "",
+            options: Array.isArray(q.options) ? q.options : [],
+            correctAnswer: q.correctAnswer || ""
+          }))
+        };
+      }
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values)
+      console.log("formattedValues:", formattedValues);
+      console.log("Dispatching action for type:", selectedType);
+
+      let actionResult;
+      switch (selectedType) {
+        case "exams":
+          actionResult = await dispatch(createExam(formattedValues));
+          break;
+        case "matchings":
+          actionResult = await dispatch(createMatching(formattedValues));
+          break;
+        case "placements":
+          actionResult = await dispatch(createPlacement(formattedValues));
+          break;
+        case "fractions":
+          actionResult = await dispatch(createFraction(formattedValues));
+          break;
+        default:
+          console.error("Unknown type:", selectedType);
+          return;
+      }
+
+      console.log("Action Result:", actionResult);
+      
+      if (actionResult.type.endsWith('/fulfilled')) {
+        toast({
+          title: "Başarılı",
+          description: "Soru başarıyla oluşturuldu",
+        });
+        resetForm();
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Hata",
+          description: "Soru oluşturulurken bir hata oluştu",
+        });
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: "Bir hata oluştu",
+      });
+    }
   }
 
-  const renderQuestionFields = (index: number) => {
+  const renderQuestionFields = (index: number, { values, setFieldValue }: any) => {
     switch (selectedCategory) {
       case "Çoktan Seçmeli":
         return (
           <div className="grid gap-6 md:grid-cols-2">
-            <FormField
-              control={form.control}
-              name={`questions.${index}.question`}
-              render={({ field }) => (
-                <FormItem className="col-span-2">
-                  <FormLabel>Soru</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Soruyu giriniz..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name={`questions.${index}.options`}
-              render={({ field }) => (
-                <FormItem className="col-span-2 md:col-span-1">
-                  <FormLabel>Seçenekler (Her satıra bir seçenek yazın)</FormLabel>
-                  <FormControl>
-                    <textarea
-                      className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                      placeholder="A) Seçenek 1&#10;B) Seçenek 2&#10;C) Seçenek 3&#10;D) Seçenek 4"
-                      onChange={(e) => field.onChange(e.target.value.split("\n"))}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name={`questions.${index}.correctAnswer`}
-              render={({ field }) => (
-                <FormItem className="md:col-span-1">
-                  <FormLabel>Doğru Cevap</FormLabel>
-                  <Select onValueChange={field.onChange}>
-                    <FormControl>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Doğru cevabı seçin" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="A">A</SelectItem>
-                      <SelectItem value="B">B</SelectItem>
-                      <SelectItem value="C">C</SelectItem>
-                      <SelectItem value="D">D</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="col-span-2">
+              <label className="block text-sm font-medium mb-1">Soru</label>
+              <Field
+                name={`questions.${index}.question`}
+                as="textarea"
+                className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                placeholder="Soruyu giriniz..."
+              />
+            </div>
+            <div className="col-span-2 md:col-span-1">
+              <label className="block text-sm font-medium mb-1">Seçenekler (Her seçeneği virgülle ayırın)</label>
+              <Field
+                name={`questions.${index}.options`}
+                as="textarea"
+                className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                placeholder="A) Seçenek 1, B) Seçenek 2, C) Seçenek 3, D) Seçenek 4"
+                onChange={(e: any) => {
+                  const options = e.target.value.split(',').map(opt => opt.trim());
+                  setFieldValue(`questions.${index}.options`, options);
+                }}
+              />
+            </div>
+            <div className="md:col-span-1">
+              <label className="block text-sm font-medium mb-1">Doğru Cevap</label>
+              <Select onValueChange={(value) => setFieldValue(`questions.${index}.correctAnswer`, value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Doğru cevabı seçin" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="A">A</SelectItem>
+                  <SelectItem value="B">B</SelectItem>
+                  <SelectItem value="C">C</SelectItem>
+                  <SelectItem value="D">D</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         )
 
       case "Eşleştirme":
         return (
           <div className="grid gap-6 md:grid-cols-2">
-            <FormField
-              control={form.control}
-              name={`questions.${index}.title`}
-              render={({ field }) => (
-                <FormItem className="col-span-2">
-                  <FormLabel>Soru Başlığı</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Eşleştirme sorusunun başlığını giriniz..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name={`questions.${index}.question`}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Eşleştirilecek İfadeler</FormLabel>
-                  <FormControl>
-                    <textarea
-                      className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                      placeholder="İfade 1&#10;İfade 2&#10;İfade 3&#10;İfade 4"
-                      onChange={(e) => field.onChange(e.target.value.split("\n"))}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name={`questions.${index}.correctAnswer`}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Doğru Eşleştirmeler</FormLabel>
-                  <FormControl>
-                    <textarea
-                      className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                      placeholder="Cevap 1&#10;Cevap 2&#10;Cevap 3&#10;Cevap 4"
-                      onChange={(e) => field.onChange(e.target.value.split("\n"))}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="col-span-2">
+              <label className="block text-sm font-medium mb-1">Soru Başlığı</label>
+              <Field
+                name={`questions.${index}.title`}
+                as={Input}
+                placeholder="Örnek: 1) Aşağıdaki verilen işlemlerini sonuçları ile eşleştiriniz"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Eşleştirilecek İfadeler (Virgülle ayırın)</label>
+              <Field
+                name={`questions.${index}.question`}
+                as="textarea"
+                className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                placeholder="6 x 2 - 2, 6 - 5 - 1, 2 x 4 - 2, 0 x 5 + 8"
+                onChange={(e: any) => {
+                  const values = e.target.value.split(",").map(item => item.trim());
+                  setFieldValue(`questions.${index}.question`, values);
+                }}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Doğru Eşleştirmeler (Virgülle ayırın)</label>
+              <Field
+                name={`questions.${index}.correctAnswer`}
+                as="textarea"
+                className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                placeholder="10, 0, 6, 8"
+                onChange={(e: any) => {
+                  const values = e.target.value.split(",").map(item => item.trim());
+                  setFieldValue(`questions.${index}.correctAnswer`, values);
+                }}
+              />
+            </div>
           </div>
         )
 
       case "Sıralama":
         return (
           <div className="grid gap-6 md:grid-cols-2">
-            <FormField
-              control={form.control}
-              name={`questions.${index}.title`}
-              render={({ field }) => (
-                <FormItem className="col-span-2">
-                  <FormLabel>Soru Başlığı</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Sıralama sorusunun başlığını giriniz..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name={`questions.${index}.correctAnswer`}
-              render={({ field }) => (
-                <FormItem className="col-span-2">
-                  <FormLabel>Sıralanacak Sayılar/İfadeler</FormLabel>
-                  <FormControl>
-                    <textarea
-                      className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                      placeholder="1&#10;2&#10;3&#10;4"
-                      onChange={(e) => {
-                        const values = e.target.value.split("\n").map(Number)
-                        field.onChange(values)
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="col-span-2">
+              <label className="block text-sm font-medium mb-1">Soru Başlığı</label>
+              <Field
+                name={`questions.${index}.title`}
+                as={Input}
+                placeholder="Örnek: 1) Aşağıdaki sayıları büyükten küçüğe sıralayınız"
+              />
+            </div>
+            <div className="col-span-2">
+              <label className="block text-sm font-medium mb-1">Sıralama Yönü</label>
+              <Select 
+                onValueChange={(value) => setFieldValue(`questions.${index}.direction`, value)}
+                defaultValue={values.questions[index].direction}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Sıralama yönünü seçin" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Büyükten küçüğe doğru sıralayınız">Büyükten küçüğe</SelectItem>
+                  <SelectItem value="Küçükten büyüğe doğru sıralayınız">Küçükten büyüğe</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="col-span-2">
+              <label className="block text-sm font-medium mb-1">Sıralanacak Sayılar (Virgülle ayırın)</label>
+              <Field
+                name={`questions.${index}.correctAnswer`}
+                as="textarea"
+                className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                placeholder="12, 3, -1, -5"
+                onChange={(e: any) => {
+                  const values = e.target.value.split(",").map(item => Number(item.trim()));
+                  setFieldValue(`questions.${index}.correctAnswer`, values);
+                }}
+              />
+            </div>
           </div>
         )
 
       case "Kesir":
         return (
           <div className="space-y-6">
-            <FormField
-              control={form.control}
-              name={`questions.${index}.title`}
-              render={({ field }) => (
-                <FormItem className="col-span-2">
-                  <FormLabel>Soru Başlığı</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Kesir sorusunun başlığını giriniz..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            {/* Fractions Array */}
-            <div className="space-y-4">
-              {form.watch(`questions.${index}.fractions`, []).map((_, fractionIndex) => (
-                <div key={fractionIndex} className="grid gap-6 md:grid-cols-2 p-4 border rounded-lg relative">
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="icon"
-                    className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
-                    onClick={() => {
-                      const currentFractions = form.getValues(`questions.${index}.fractions`) || []
-                      form.setValue(
-                        `questions.${index}.fractions`,
-                        currentFractions.filter((_, i) => i !== fractionIndex)
-                      )
-                    }}
-                  >
-                    ×
-                  </Button>
-                  <FormField
-                    control={form.control}
-                    name={`questions.${index}.fractions.${fractionIndex}.expression`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Kesir İfadesi {fractionIndex + 1}</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Örn: 6x1/2" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name={`questions.${index}.fractions.${fractionIndex}.answer`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Doğru Cevap {fractionIndex + 1}</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Örn: 13/2" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              ))}
+            <div className="col-span-2">
+              <label className="block text-sm font-medium mb-1">Soru Başlığı</label>
+              <Field
+                name={`questions.${index}.title`}
+                as={Input}
+                placeholder="Kesir sorusunun başlığını giriniz..."
+              />
             </div>
             
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                const currentFractions = form.getValues(`questions.${index}.fractions`) || []
-                form.setValue(`questions.${index}.fractions`, [
-                  ...currentFractions,
-                  { expression: "", answer: "" }
-                ])
-              }}
-            >
-              Kesir Ekle
-            </Button>
+            <FieldArray name={`questions.${index}.fractions`}>
+              {({ push, remove }: any) => (
+                <div className="space-y-4">
+                  {values.questions[index].fractions.map((_: any, fractionIndex: number) => (
+                    <div key={fractionIndex} className="grid gap-6 md:grid-cols-2 p-4 border rounded-lg relative">
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                        onClick={() => remove(fractionIndex)}
+                      >
+                        ×
+                      </Button>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Kesir İfadesi {fractionIndex + 1}</label>
+                        <Field
+                          name={`questions.${index}.fractions.${fractionIndex}.expression`}
+                          as={Input}
+                          placeholder="Örn: 6x1/2"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Doğru Cevap {fractionIndex + 1}</label>
+                        <Field
+                          name={`questions.${index}.fractions.${fractionIndex}.answer`}
+                          as={Input}
+                          placeholder="Örn: 13/2"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => push({ expression: "", answer: "" })}
+                  >
+                    Kesir Ekle
+                  </Button>
+                </div>
+              )}
+            </FieldArray>
           </div>
         )
 
@@ -309,111 +392,135 @@ export default function TestEklePage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-              <div className="grid gap-6 md:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="title"
-                  render={({ field }) => (
-                    <FormItem className="col-span-2 md:col-span-1">
-                      <FormLabel>Test Başlığı</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Test başlığını giriniz..." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+          <Formik
+            initialValues={initialValues}
+            onSubmit={handleSubmit}
+          >
+            {({ values, setFieldValue, resetForm }) => (
+              <Form className="space-y-8">
+                <div className="grid gap-6 md:grid-cols-2">
+                  <div className="col-span-2 md:col-span-1">
+                    <label className="block text-sm font-medium mb-1">Test Başlığı</label>
+                    <Field
+                      name="title"
+                      as={Input}
+                      placeholder="Test başlığını giriniz..."
+                    />
+                  </div>
 
-                <FormField
-                  control={form.control}
-                  name="category"
-                  render={({ field }) => (
-                    <FormItem className="col-span-2 md:col-span-1">
-                      <FormLabel>Kategori</FormLabel>
-                      <Select
-                        onValueChange={(value) => {
-                          field.onChange(value)
-                          setSelectedCategory(value)
-                        }}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Soru tipini seçin" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {questionTypes.map((type) => (
-                            <SelectItem key={type.value} value={type.value}>
-                              {type.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                  <div className="col-span-2 md:col-span-1">
+                    <label className="block text-sm font-medium mb-1">Kategori</label>
+                    <Select
+                      onValueChange={(value) => {
+                        const selectedQuestionType = questionTypes.find(type => type.value === value);
+                        const newType = selectedQuestionType?.type || "";
+                        setFieldValue("category", value);
+                        setSelectedCategory(value);
+                        setSelectedType(newType);
+                        setInitialValues(getInitialValues(newType));
+                        resetForm({ values: getInitialValues(newType) });
+                        console.log("Selected type:", newType);
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Soru tipini seçin" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {questionTypes.map((type) => (
+                          <SelectItem key={type.value} value={type.value}>
+                            {type.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem className="col-span-2">
-                      <FormLabel>Açıklama</FormLabel>
-                      <FormControl>
-                        <textarea 
-                          className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                          placeholder="Test açıklamasını giriniz..."
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormDescription>Bu alan isteğe bağlıdır.</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium mb-1">Açıklama</label>
+                    <Field
+                      name="description"
+                      as="textarea"
+                      className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                      placeholder="Test açıklamasını giriniz..."
+                    />
+                  </div>
 
-              <div className="space-y-6">
-                {fields.map((field, index) => (
-                  <Card key={field.id} className="bg-muted/50">
-                    <CardContent className="pt-6">
-                      <div className="mb-6 flex items-center justify-between">
-                        <h4 className="text-lg font-medium">Soru {index + 1}</h4>
-                        {index > 0 && (
-                          <Button
-                            type="button"
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => remove(index)}
-                          >
-                            Soruyu Sil
-                          </Button>
-                        )}
+                  <div className="col-span-2 md:col-span-1">
+                    <label className="block text-sm font-medium mb-1">Doğruluk Oranı</label>
+                    <Field
+                      type="number"
+                      name="accuracy"
+                      as={Input}
+                      placeholder="Doğruluk oranını giriniz..."
+                      min={0}
+                      max={100}
+                    />
+                  </div>
+
+                  <div className="col-span-2 md:col-span-1">
+                    <label className="block text-sm font-medium mb-1">Tamamlanma Oranı</label>
+                    <Field
+                      type="number"
+                      name="completionRate"
+                      as={Input}
+                      placeholder="Tamamlanma oranını giriniz..."
+                      min={0}
+                      max={100}
+                    />
+                  </div>
+                </div>
+
+                <FieldArray name="questions">
+                  {({ push, remove }: any) => (
+                    <div className="space-y-6">
+                      {values.questions.map((_, index) => (
+                        <Card key={index} className="bg-muted/50">
+                          <CardContent className="pt-6">
+                            <div className="mb-6 flex items-center justify-between">
+                              <h4 className="text-lg font-medium">Soru {index + 1}</h4>
+                              {index > 0 && (
+                                <Button
+                                  type="button"
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={() => remove(index)}
+                                >
+                                  Soruyu Sil
+                                </Button>
+                              )}
+                            </div>
+                            {renderQuestionFields(index, { values, setFieldValue })}
+                          </CardContent>
+                        </Card>
+                      ))}
+
+                      <div className="flex flex-col gap-4 sm:flex-row sm:justify-between">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => push({ title: "", question: "", options: [], correctAnswer: "", fractions: [] })}
+                        >
+                          Yeni Soru Ekle
+                        </Button>
+
+                        <Button 
+                          type="submit"
+                          className="w-full sm:w-auto"
+                          onClick={() => {
+                            console.log("Submit button clicked");
+                            console.log("Current values:", values);
+                            console.log("Selected category:", selectedCategory);
+                          }}
+                        >
+                          Testi Kaydet
+                        </Button>
                       </div>
-                      {renderQuestionFields(index)}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-
-              <div className="flex flex-col gap-4 sm:flex-row sm:justify-between">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => append({ title: "", question: "", options: [], correctAnswer: "", fractions: [] })}
-                >
-                  Yeni Soru Ekle
-                </Button>
-
-                <Button type="submit" className="w-full sm:w-auto">
-                  Testi Kaydet
-                </Button>
-              </div>
-            </form>
-          </Form>
+                    </div>
+                  )}
+                </FieldArray>
+              </Form>
+            )}
+          </Formik>
         </CardContent>
       </Card>
     </div>

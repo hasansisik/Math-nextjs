@@ -5,6 +5,9 @@ import { server } from "@/config";
 // Types for payloads
 export interface ExamPayload {
   title: string;
+  description: string;
+  accuracy: number;
+  completionRate: number;
   questionsCount: number;
   questions: {
     question: string;
@@ -15,6 +18,9 @@ export interface ExamPayload {
 
 export interface MatchingPayload {
   title: string;
+  description: string;
+  accuracy: number;
+  completionRate: number;
   questionsCount: number;
   questions: {
     title: string;
@@ -25,6 +31,9 @@ export interface MatchingPayload {
 
 export interface FractionPayload {
   title: string;
+  description: string;
+  accuracy: number;
+  completionRate: number;
   questionsCount: number;
   questions: {
     title: string;
@@ -42,6 +51,9 @@ export interface FractionPayload {
 
 export interface PlacementPayload {
   title: string;
+  description: string;
+  accuracy: number;
+  completionRate: number;
   questionsCount: number;
   questions: {
     type: '>' | '<';
@@ -105,6 +117,7 @@ export const deleteExam = createAsyncThunk(
 export const createMatching = createAsyncThunk(
   "question/createMatching",
   async (payload: MatchingPayload, thunkAPI) => {
+    console.log("payload1", payload)
     try {
       const { data } = await axios.post(`${server}/question/matching`, payload);
       return data.data;
