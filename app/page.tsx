@@ -1,23 +1,56 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import categories from "./data/categories.json";
-import exams from "@/exams.json";
-import matching from "@/matching.json";
-import placement from "@/placement.json";
-import fraction from "@/fraction.json";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import Image from "next/image";
 import CircularProgress from "@/components/ui/CircularProgress";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/redux/store";
+import { getQuestions } from "@/redux/actions/questionActions";
 
 export default function Home() {
   const [selectedFilter, setSelectedFilter] = useState("all");
   const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
+  const { questions, loading } = useSelector((state: RootState) => state.question);
+
+  console.log("q", questions)
+
+  useEffect(() => {
+    dispatch(getQuestions());
+  }, [dispatch]);
 
   const handleFilterChange = (filter: string) => {
     setSelectedFilter(filter);
   };
+
+  const processQuestions = (questions: any[]) => {
+    return questions.reduce((acc: any, item: any) => {
+      if (item.exams) {
+        acc.exams = [...(acc.exams || []), item.exams];
+      }
+      if (item.matching) {
+        acc.matching = [...(acc.matching || []), item.matching];
+      }
+      if (item.placement) {
+        acc.placement = [...(acc.placement || []), item.placement];
+      }
+      return acc;
+    }, {});
+  };
+
+  const processedQuestions = questions ? processQuestions(questions) : {};
+  const { exams = [], matching = [], placement = [] } = processedQuestions;
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <CircularProgress />
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 flex flex-col">
@@ -50,9 +83,9 @@ export default function Home() {
               {/* Sınavlar Kartı */}
               {exams.map((exam) => (
                 <Card
-                  key={exam.id}
+                  key={exam._id}
                   className="flex-1 cursor-pointer hover:shadow-lg transition-shadow"
-                  onClick={() => router.push(`/exam/${exam.id}`)}
+                  onClick={() => router.push(`/exam/${exam._id}`)}
                 >
                   <CardHeader>
                     <div className="relative w-full h-32 mb-4">
@@ -109,202 +142,139 @@ export default function Home() {
             </div>
           )}
           {selectedFilter === "matching" && (
-             <div className="flex flex-col sm:flex-row gap-6 w-full">
-             {/* Sınavlar Kartı */}
-             {matching.map((match) => (
-               <Card
-                 key={match.id}
-                 className="flex-1 cursor-pointer hover:shadow-lg transition-shadow"
-                 onClick={() => router.push(`/matching/${match.id}`)}
-               >
-                 <CardHeader>
-                   <div className="relative w-full h-32 mb-4">
-                     <Image
-                       src="/examBanner2.jpg"
-                       alt="Course Image"
-                       layout="fill"
-                       objectFit="cover"
-                       className="rounded-lg"
-                     />
-                   </div>
-                   <CardTitle>{match.title}</CardTitle>
-                 </CardHeader>
-                 <CardContent>
-                   <div className="flex flex-col">
-                     <div className="flex justify-between">
-                       <div className="flex text-center flex-row gap-4">
-                         <CircularProgress
-                           value={match.accuracy}
-                           color="#34d399"
-                         />
-                         <div>
-                           <p>Zorluk</p>
-                           <p>{match.accuracy}%</p>
-                         </div>
-                       </div>
-                       <div className="flex text-center flex-row  gap-2">
-                         <CircularProgress
-                           value={match.completionRate}
-                           color="#34d399"
-                         />
-                         <div>
-                           <p>Başarı Yüzdesi</p>
-                           <p>{match.completionRate}%</p>
-                         </div>
-                       </div>
-                     </div>
-                     <div className="flex flex-col justify-between mt-4">
-                       <p className="px-4 py-1 bg-gray-100 rounded-full w-fit">
-                         {match.category}
-                       </p>
-                       <div className="pt-4 flex flex-row justify-between">
-                         <p className="text-base">
-                         Oluşturulma tarihi:{" "}
-                           {format(new Date(match.createdAt), "dd/MM/yyyy")}
-                         </p>
-                         <p>Soru Sayısı: {match.questionsCount}</p>
-                       </div>
-                     </div>
-                   </div>
-                 </CardContent>
-               </Card>
-             ))}
-           </div>
+            <div className="flex flex-col sm:flex-row gap-6 w-full">
+              {/* Sınavlar Kartı */}
+              {matching.map((match) => (
+                <Card
+                  key={match._id}
+                  className="flex-1 cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={() => router.push(`/matching/${match._id}`)}
+                >
+                  <CardHeader>
+                    <div className="relative w-full h-32 mb-4">
+                      <Image
+                        src="/examBanner2.jpg"
+                        alt="Course Image"
+                        layout="fill"
+                        objectFit="cover"
+                        className="rounded-lg"
+                      />
+                    </div>
+                    <CardTitle>{match.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-col">
+                      <div className="flex justify-between">
+                        <div className="flex text-center flex-row gap-4">
+                          <CircularProgress
+                            value={match.accuracy}
+                            color="#34d399"
+                          />
+                          <div>
+                            <p>Zorluk</p>
+                            <p>{match.accuracy}%</p>
+                          </div>
+                        </div>
+                        <div className="flex text-center flex-row  gap-2">
+                          <CircularProgress
+                            value={match.completionRate}
+                            color="#34d399"
+                          />
+                          <div>
+                            <p>Başarı Yüzdesi</p>
+                            <p>{match.completionRate}%</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex flex-col justify-between mt-4">
+                        <p className="px-4 py-1 bg-gray-100 rounded-full w-fit">
+                          {match.category}
+                        </p>
+                        <div className="pt-4 flex flex-row justify-between">
+                          <p className="text-base">
+                            Oluşturulma tarihi:{" "}
+                            {format(new Date(match.createdAt), "dd/MM/yyyy")}
+                          </p>
+                          <p>Soru Sayısı: {match.questionsCount}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           )}
           {selectedFilter === "placement" && (
-             <div className="flex flex-col sm:flex-row gap-6 w-full">
-             {/* Sınavlar Kartı */}
-             {placement.map((place) => (
-               <Card
-                 key={place.id}
-                 className="flex-1 cursor-pointer hover:shadow-lg transition-shadow"
-                 onClick={() => router.push(`/placement/${place.id}`)}
-               >
-                 <CardHeader>
-                   <div className="relative w-full h-32 mb-4">
-                     <Image
-                       src="/examBanner1.jpg"
-                       alt="Course Image"
-                       layout="fill"
-                       objectFit="cover"
-                       className="rounded-lg"
-                     />
-                   </div>
-                   <CardTitle>{place.title}</CardTitle>
-                 </CardHeader>
-                 <CardContent>
-                   <div className="flex flex-col">
-                     <div className="flex justify-between">
-                       <div className="flex text-center flex-row gap-4">
-                         <CircularProgress
-                           value={place.accuracy}
-                           color="#34d399"
-                         />
-                         <div>
-                           <p>Zorluk</p>
-                           <p>{place.accuracy}%</p>
-                         </div>
-                       </div>
-                       <div className="flex text-center flex-row  gap-2">
-                         <CircularProgress
-                           value={place.completionRate}
-                           color="#34d399"
-                         />
-                         <div>
-                           <p>Başarı Yüzdesi</p>
-                           <p>{place.completionRate}%</p>
-                         </div>
-                       </div>
-                     </div>
-                     <div className="flex flex-col justify-between mt-4">
-                       <p className="px-4 py-1 bg-gray-100 rounded-full w-fit">
-                         {place.category}
-                       </p>
-                       <div className="pt-4 flex flex-row justify-between">
-                         <p className="text-base">
-                         Oluşturulma tarihi:{" "}
-                           {format(new Date(place.createdAt), "dd/MM/yyyy")}
-                         </p>
-                         <p>Soru Sayısı: {place.questionsCount}</p>
-                       </div>
-                     </div>
-                   </div>
-                 </CardContent>
-               </Card>
-             ))}
-           </div>
-          )}
-          {selectedFilter === "fraction" && (
-             <div className="flex flex-col sm:flex-row gap-6 w-full">
-             {/* Sınavlar Kartı */}
-             {fraction.map((frac) => (
-               <Card
-                 key={frac.id}
-                 className="flex-1 cursor-pointer hover:shadow-lg transition-shadow"
-                 onClick={() => router.push(`/fraction/${frac.id}`)}
-               >
-                 <CardHeader>
-                   <div className="relative w-full h-32 mb-4">
-                     <Image
-                       src="/examBanner3.jpg"
-                       alt="Course Image"
-                       layout="fill"
-                       objectFit="cover"
-                       className="rounded-lg"
-                     />
-                   </div>
-                   <CardTitle>{frac.title}</CardTitle>
-                 </CardHeader>
-                 <CardContent>
-                   <div className="flex flex-col">
-                     <div className="flex justify-between">
-                       <div className="flex text-center flex-row gap-4">
-                         <CircularProgress
-                           value={frac.accuracy}
-                           color="#34d399"
-                         />
-                         <div>
-                           <p>Zorluk</p>
-                           <p>{frac.accuracy}%</p>
-                         </div>
-                       </div>
-                       <div className="flex text-center flex-row  gap-2">
-                         <CircularProgress
-                           value={frac.completionRate}
-                           color="#34d399"
-                         />
-                         <div>
-                           <p>Başarı Yüzdesi</p>
-                           <p>{frac.completionRate}%</p>
-                         </div>
-                       </div>
-                     </div>
-                     <div className="flex flex-col justify-between mt-4">
-                       <p className="px-4 py-1 bg-gray-100 rounded-full w-fit">
-                         {frac.category}
-                       </p>
-                       <div className="pt-4 flex flex-row justify-between">
-                         <p className="text-base">
-                         Oluşturulma tarihi:{" "}
-                           {format(new Date(frac.createdAt), "dd/MM/yyyy")}
-                         </p>
-                         <p>Soru Sayısı: {frac.questionsCount}</p>
-                       </div>
-                     </div>
-                   </div>
-                 </CardContent>
-               </Card>
-             ))}
-           </div>
+            <div className="flex flex-col sm:flex-row gap-6 w-full">
+              {/* Sınavlar Kartı */}
+              {placement.map((place) => (
+                <Card
+                  key={place._id}
+                  className="flex-1 cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={() => router.push(`/placement/${place._id}`)}
+                >
+                  <CardHeader>
+                    <div className="relative w-full h-32 mb-4">
+                      <Image
+                        src="/examBanner1.jpg"
+                        alt="Course Image"
+                        layout="fill"
+                        objectFit="cover"
+                        className="rounded-lg"
+                      />
+                    </div>
+                    <CardTitle>{place.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-col">
+                      <div className="flex justify-between">
+                        <div className="flex text-center flex-row gap-4">
+                          <CircularProgress
+                            value={place.accuracy}
+                            color="#34d399"
+                          />
+                          <div>
+                            <p>Zorluk</p>
+                            <p>{place.accuracy}%</p>
+                          </div>
+                        </div>
+                        <div className="flex text-center flex-row  gap-2">
+                          <CircularProgress
+                            value={place.completionRate}
+                            color="#34d399"
+                          />
+                          <div>
+                            <p>Başarı Yüzdesi</p>
+                            <p>{place.completionRate}%</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex flex-col justify-between mt-4">
+                        <p className="px-4 py-1 bg-gray-100 rounded-full w-fit">
+                          {place.category}
+                        </p>
+                        <div className="pt-4 flex flex-row justify-between">
+                          <p className="text-base">
+                            Oluşturulma tarihi:{" "}
+                            {format(new Date(place.createdAt), "dd/MM/yyyy")}
+                          </p>
+                          <p>Soru Sayısı: {place.questionsCount}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           )}
           {selectedFilter === "all" && (
             <div className="flex flex-col sm:flex-row gap-6 w-full">
               {/* Exam Cards */}
               {exams.map((exam) => (
                 <Card
-                  key={exam.id}
+                  key={exam._id}
                   className="flex-1 cursor-pointer hover:shadow-lg transition-shadow"
-                  onClick={() => router.push(`/exam/${exam.id}`)}
+                  onClick={() => router.push(`/exam/${exam._id}`)}
                 >
                   <CardHeader>
                     <div className="relative w-full h-32 mb-4">
@@ -360,181 +330,122 @@ export default function Home() {
               ))}
               {/* Matching Cards */}
               {matching.map((match) => (
-               <Card
-                 key={match.id}
-                 className="flex-1 cursor-pointer hover:shadow-lg transition-shadow"
-                 onClick={() => router.push(`/matching/${match.id}`)}
-               >
-                 <CardHeader>
-                   <div className="relative w-full h-32 mb-4">
-                     <Image
-                       src="/examBanner2.jpg"
-                       alt="Course Image"
-                       layout="fill"
-                       objectFit="cover"
-                       className="rounded-lg"
-                     />
-                   </div>
-                   <CardTitle>{match.title}</CardTitle>
-                 </CardHeader>
-                 <CardContent>
-                   <div className="flex flex-col">
-                     <div className="flex justify-between">
-                       <div className="flex text-center flex-row gap-4">
-                         <CircularProgress
-                           value={match.accuracy}
-                           color="#34d399"
-                         />
-                         <div>
-                           <p>Zorluk</p>
-                           <p>{match.accuracy}%</p>
-                         </div>
-                       </div>
-                       <div className="flex text-center flex-row  gap-2">
-                         <CircularProgress
-                           value={match.completionRate}
-                           color="#34d399"
-                         />
-                         <div>
-                           <p>Başarı Yüzdesi</p>
-                           <p>{match.completionRate}%</p>
-                         </div>
-                       </div>
-                     </div>
-                     <div className="flex flex-col justify-between mt-4">
-                       <p className="px-4 py-1 bg-gray-100 rounded-full w-fit">
-                         {match.category}
-                       </p>
-                       <div className="pt-4 flex flex-row justify-between">
-                         <p className="text-base">
-                         Oluşturulma tarihi:{" "}
-                           {format(new Date(match.createdAt), "dd/MM/yyyy")}
-                         </p>
-                         <p>Soru Sayısı: {match.questionsCount}</p>
-                       </div>
-                     </div>
-                   </div>
-                 </CardContent>
-               </Card>
-             ))}
+                <Card
+                  key={match._id}
+                  className="flex-1 cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={() => router.push(`/matching/${match._id}`)}
+                >
+                  <CardHeader>
+                    <div className="relative w-full h-32 mb-4">
+                      <Image
+                        src="/examBanner2.jpg"
+                        alt="Course Image"
+                        layout="fill"
+                        objectFit="cover"
+                        className="rounded-lg"
+                      />
+                    </div>
+                    <CardTitle>{match.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-col">
+                      <div className="flex justify-between">
+                        <div className="flex text-center flex-row gap-4">
+                          <CircularProgress
+                            value={match.accuracy}
+                            color="#34d399"
+                          />
+                          <div>
+                            <p>Zorluk</p>
+                            <p>{match.accuracy}%</p>
+                          </div>
+                        </div>
+                        <div className="flex text-center flex-row  gap-2">
+                          <CircularProgress
+                            value={match.completionRate}
+                            color="#34d399"
+                          />
+                          <div>
+                            <p>Başarı Yüzdesi</p>
+                            <p>{match.completionRate}%</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex flex-col justify-between mt-4">
+                        <p className="px-4 py-1 bg-gray-100 rounded-full w-fit">
+                          {match.category}
+                        </p>
+                        <div className="pt-4 flex flex-row justify-between">
+                          <p className="text-base">
+                            Oluşturulma tarihi:{" "}
+                            {format(new Date(match.createdAt), "dd/MM/yyyy")}
+                          </p>
+                          <p>Soru Sayısı: {match.questionsCount}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
               {/* Placement Cards */}
               {placement.map((place) => (
-               <Card
-                 key={place.id}
-                 className="flex-1 cursor-pointer hover:shadow-lg transition-shadow"
-                 onClick={() => router.push(`/placement/${place.id}`)}
-               >
-                 <CardHeader>
-                   <div className="relative w-full h-32 mb-4">
-                     <Image
-                       src="/examBanner1.jpg"
-                       alt="Course Image"
-                       layout="fill"
-                       objectFit="cover"
-                       className="rounded-lg"
-                     />
-                   </div>
-                   <CardTitle>{place.title}</CardTitle>
-                 </CardHeader>
-                 <CardContent>
-                   <div className="flex flex-col">
-                     <div className="flex justify-between">
-                       <div className="flex text-center flex-row gap-4">
-                         <CircularProgress
-                           value={place.accuracy}
-                           color="#34d399"
-                         />
-                         <div>
-                           <p>Zorluk</p>
-                           <p>{place.accuracy}%</p>
-                         </div>
-                       </div>
-                       <div className="flex text-center flex-row  gap-2">
-                         <CircularProgress
-                           value={place.completionRate}
-                           color="#34d399"
-                         />
-                         <div>
-                           <p>Başarı Yüzdesi</p>
-                           <p>{place.completionRate}%</p>
-                         </div>
-                       </div>
-                     </div>
-                     <div className="flex flex-col justify-between mt-4">
-                       <p className="px-4 py-1 bg-gray-100 rounded-full w-fit">
-                         {place.category}
-                       </p>
-                       <div className="pt-4 flex flex-row justify-between">
-                         <p className="text-base">
-                         Oluşturulma tarihi:{" "}
-                           {format(new Date(place.createdAt), "dd/MM/yyyy")}
-                         </p>
-                         <p>Soru Sayısı: {place.questionsCount}</p>
-                       </div>
-                     </div>
-                   </div>
-                 </CardContent>
-               </Card>
-             ))}
-              {/* Fraction Cards */}
-              {fraction.map((frac) => (
-               <Card
-                 key={frac.id}
-                 className="flex-1 cursor-pointer hover:shadow-lg transition-shadow"
-                 onClick={() => router.push(`/fraction/${frac.id}`)}
-               >
-                 <CardHeader>
-                   <div className="relative w-full h-32 mb-4">
-                     <Image
-                       src="/examBanner3.jpg"
-                       alt="Course Image"
-                       layout="fill"
-                       objectFit="cover"
-                       className="rounded-lg"
-                     />
-                   </div>
-                   <CardTitle>{frac.title}</CardTitle>
-                 </CardHeader>
-                 <CardContent>
-                   <div className="flex flex-col">
-                     <div className="flex justify-between">
-                       <div className="flex text-center flex-row gap-4">
-                         <CircularProgress
-                           value={frac.accuracy}
-                           color="#34d399"
-                         />
-                         <div>
-                           <p>Zorluk</p>
-                           <p>{frac.accuracy}%</p>
-                         </div>
-                       </div>
-                       <div className="flex text-center flex-row  gap-2">
-                         <CircularProgress
-                           value={frac.completionRate}
-                           color="#34d399"
-                         />
-                         <div>
-                           <p>Başarı Yüzdesi</p>
-                           <p>{frac.completionRate}%</p>
-                         </div>
-                       </div>
-                     </div>
-                     <div className="flex flex-col justify-between mt-4">
-                       <p className="px-4 py-1 bg-gray-100 rounded-full w-fit">
-                         {frac.category}
-                       </p>
-                       <div className="pt-4 flex flex-row justify-between">
-                         <p className="text-base">
-                         Oluşturulma tarihi:{" "}
-                           {format(new Date(frac.createdAt), "dd/MM/yyyy")}
-                         </p>
-                         <p>Soru Sayısı: {frac.questionsCount}</p>
-                       </div>
-                     </div>
-                   </div>
-                 </CardContent>
-               </Card>
-             ))}
+                <Card
+                  key={place._id}
+                  className="flex-1 cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={() => router.push(`/placement/${place._id}`)}
+                >
+                  <CardHeader>
+                    <div className="relative w-full h-32 mb-4">
+                      <Image
+                        src="/examBanner1.jpg"
+                        alt="Course Image"
+                        layout="fill"
+                        objectFit="cover"
+                        className="rounded-lg"
+                      />
+                    </div>
+                    <CardTitle>{place.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-col">
+                      <div className="flex justify-between">
+                        <div className="flex text-center flex-row gap-4">
+                          <CircularProgress
+                            value={place.accuracy}
+                            color="#34d399"
+                          />
+                          <div>
+                            <p>Zorluk</p>
+                            <p>{place.accuracy}%</p>
+                          </div>
+                        </div>
+                        <div className="flex text-center flex-row  gap-2">
+                          <CircularProgress
+                            value={place.completionRate}
+                            color="#34d399"
+                          />
+                          <div>
+                            <p>Başarı Yüzdesi</p>
+                            <p>{place.completionRate}%</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex flex-col justify-between mt-4">
+                        <p className="px-4 py-1 bg-gray-100 rounded-full w-fit">
+                          {place.category}
+                        </p>
+                        <div className="pt-4 flex flex-row justify-between">
+                          <p className="text-base">
+                            Oluşturulma tarihi:{" "}
+                            {format(new Date(place.createdAt), "dd/MM/yyyy")}
+                          </p>
+                          <p>Soru Sayısı: {place.questionsCount}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           )}
         </main>
