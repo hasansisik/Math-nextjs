@@ -1,6 +1,7 @@
 "use client";
 import { use, Usable } from "react";
-import placementData from "@/placement.json";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 import { AlarmClock, AlignHorizontalDistributeStart, X } from "lucide-react";
 import {
   DndContext,
@@ -80,22 +81,31 @@ function Droppable({
 }
 
 const MatchingPage = ({ params }: { params: Usable<{ placementId: string }> }) => {
+  const { questions, loading } = useSelector((state: RootState) => state.question);
   const router = useRouter();
-  const unwrappedParams = use(params);
-  const match = placementData.find((m) => m.id === unwrappedParams.placementId);
-
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [items, setItems] = useState<string[]>([]);
   const [showResults, setShowResults] = useState(false);
+  const [timer, setTimer] = useState({ minutes: 0, seconds: 0 });
+  const [timerActive, setTimerActive] = useState(true);
+  const [items, setItems] = useState<string[]>([]);
   const [matchResults, setMatchResults] = useState({
     correct: 0,
     incorrect: 0,
     totalPoints: 0,
     passed: false,
   });
-  const [timer, setTimer] = useState({ minutes: 0, seconds: 0 });
-  const [timerActive, setTimerActive] = useState(true);
   const [droppedItems, setDroppedItems] = useState<{ [key: string]: string }>({});
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+
+  const resolvedParams = use(params);
+  const placement = questions?.find((q: any) => q.placement?._id === resolvedParams.placementId)?.placement;
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!placement) {
+    return <div>Placement test not found</div>;
+  }
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -103,16 +113,17 @@ const MatchingPage = ({ params }: { params: Usable<{ placementId: string }> }) =
   );
   const [playPickupSound] = useSound("/pickup.mp3");
   const [playDropSound] = useSound("/drop.mp3");
+  const [playFailSound] = useSound("/fail.mp3");
 
   // Items için useEffect
   useEffect(() => {
-    if (match) {
-      const shuffledItems = [...match.questions[currentQuestionIndex].correctAnswer]
+    if (placement) {
+      const shuffledItems = [...placement.questions[currentQuestionIndex].correctAnswer]
         .map(String)
         .sort(() => 0.5 - Math.random());
       setItems(shuffledItems);
     }
-  }, [match, currentQuestionIndex]);
+  }, [placement, currentQuestionIndex]);
 
   // Timer için useEffect
   useEffect(() => {
@@ -139,8 +150,6 @@ const MatchingPage = ({ params }: { params: Usable<{ placementId: string }> }) =
     return () => clearInterval(interval);
   }, [timerActive]);
 
-  if (!match) return <div>Yükleniyor...</div>;
-
   function handleDragStart() {
     playPickupSound();
   }
@@ -157,12 +166,18 @@ const MatchingPage = ({ params }: { params: Usable<{ placementId: string }> }) =
       ...prev,
       [overId]: activeId,
     }));
-    playDropSound();
+    
+    // Doğru yerleştirme durumunda drop, yanlış yerleştirme durumunda fail sesi çal
+    if (activeId === overId) {
+      playDropSound();
+    } else {
+      playFailSound();
+    }
   }
 
   const handleSubmit = () => {
     setTimerActive(false);
-    const currentQuestion = match.questions[currentQuestionIndex];
+    const currentQuestion = placement.questions[currentQuestionIndex];
     const correctOrder = currentQuestion.correctAnswer.map(String);
 
     const isCorrect =
@@ -218,14 +233,14 @@ const MatchingPage = ({ params }: { params: Usable<{ placementId: string }> }) =
           <div className="p-1 bg-primary rounded-sm">
             <AlignHorizontalDistributeStart color="white" />
           </div>
-          <p className="font-bold">{match.title}</p>
+          <p className="font-bold">{placement.title}</p>
           <p>
-            {currentQuestionIndex + 1} ile {match.questionsCount}
+            {currentQuestionIndex + 1} ile {placement.questions.length}
           </p>
         </div>
 
         <h2 className="pt-5 font-bold text-lg">
-          {match.questions[currentQuestionIndex].title}
+          {placement.questions[currentQuestionIndex].title}
         </h2>
         <p className="text-neutral-500">
           Sürükle bırak yaparak sorular ve cevaplarını eşleştiriniz.
@@ -241,7 +256,7 @@ const MatchingPage = ({ params }: { params: Usable<{ placementId: string }> }) =
             <div className="border-b pb-4">
               {/* Yuva alanı */}
               <div className="flex flex-wrap gap-4 mb-4">
-                {match.questions[currentQuestionIndex].correctAnswer.map(
+                {placement.questions[currentQuestionIndex].correctAnswer.map(
                   (correctAnswer, index) => (
                     <div key={index} className="flex items-center">
                       <Droppable id={String(correctAnswer)}>
@@ -260,11 +275,11 @@ const MatchingPage = ({ params }: { params: Usable<{ placementId: string }> }) =
                         )}
                       </Droppable>
                       {index <
-                        match.questions[currentQuestionIndex].correctAnswer
+                        placement.questions[currentQuestionIndex].correctAnswer
                           .length -
                           1 && (
                         <div className="text-2xl font-bold text-gray-500 mx-2">
-                          {match.questions[currentQuestionIndex].type}
+                          {placement.questions[currentQuestionIndex].type}
                         </div>
                       )}
                     </div>
@@ -313,17 +328,17 @@ const MatchingPage = ({ params }: { params: Usable<{ placementId: string }> }) =
           </Button>
           <Button
             onClick={
-              currentQuestionIndex === match.questions.length - 1
+              currentQuestionIndex === placement.questions.length - 1
                 ? handleSubmit
                 : () => setCurrentQuestionIndex((prev) => prev + 1)
             }
             variant={
-              currentQuestionIndex === match.questions.length - 1
+              currentQuestionIndex === placement.questions.length - 1
                 ? "destructive"
                 : "default"
             }
           >
-            {currentQuestionIndex === match.questions.length - 1
+            {currentQuestionIndex === placement.questions.length - 1
               ? "Sınavı Bitir"
               : "Sonraki Soru"}
           </Button>
@@ -331,10 +346,13 @@ const MatchingPage = ({ params }: { params: Usable<{ placementId: string }> }) =
 
         <ScrollArea className="my-5">
           <div className="grid grid-cols-10 gap-2">
-            {match.questions.map((_, index) => (
+            {placement.questions.map((_, index) => (
               <Button
                 key={index}
                 variant="outline"
+                className={`w-8 h-8 ${
+                  currentQuestionIndex === index ? "bg-primary text-white" : ""
+                }`}
                 onClick={() => setCurrentQuestionIndex(index)}
               >
                 {index + 1}
@@ -344,39 +362,27 @@ const MatchingPage = ({ params }: { params: Usable<{ placementId: string }> }) =
         </ScrollArea>
       </div>
 
-      <Dialog open={showResults} onOpenChange={handleDialogClose}>
+      <Dialog open={showResults} onOpenChange={setShowResults}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Sınav Sonucu</DialogTitle>
+            <DialogTitle>Test Sonuçları</DialogTitle>
           </DialogHeader>
           <div className="pt-4 space-y-2">
             <DialogDescription asChild>
               <div>
-                <div>Toplam Soru: 1</div>
-                <div className="text-green-600">
-                  Doğru Sayısı: {matchResults.correct}
-                </div>
-                <div className="text-red-600">
-                  Yanlış Sayısı: {matchResults.incorrect}
-                </div>
-                <div>Boş Sayısı: 0</div>
-                <div className="font-bold">
-                  Başarı Yüzdesi: %{matchResults.totalPoints.toFixed(0)}
-                </div>
-                <div
-                  className={`text-lg font-bold ${
-                    matchResults.passed ? "text-green-600" : "text-red-600"
-                  }`}
-                >
-                  {matchResults.passed
-                    ? "Tebrikler, Başarılı Oldunuz!"
-                    : "Üzgünüz, Başarısız Oldunuz!"}
+                <div>Toplam Soru: {placement.questions[currentQuestionIndex].correctAnswer.length}</div>
+                <div className="text-green-600">Doğru Sayısı: {matchResults.correct}</div>
+                <div className="text-red-600">Yanlış Sayısı: {matchResults.incorrect}</div>
+                <div>Boş Sayısı: {placement.questions[currentQuestionIndex].correctAnswer.length - (matchResults.correct + matchResults.incorrect)}</div>
+                <div className="font-bold">Başarı Yüzdesi: %{matchResults.totalPoints.toFixed(0)}</div>
+                <div className={`text-lg font-bold ${matchResults.passed ? 'text-green-600' : 'text-red-600'}`}>
+                  {matchResults.passed ? 'Tebrikler, Başarılı Oldunuz!' : 'Üzgünüz, Başarısız Oldunuz!'}
                 </div>
               </div>
             </DialogDescription>
           </div>
           <DialogFooter>
-            <Button onClick={handleDialogClose}>Tamam</Button>
+            <Button onClick={() => router.push("/")}>Ana Sayfaya Dön</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

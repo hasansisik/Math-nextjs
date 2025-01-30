@@ -1,7 +1,12 @@
 "use client";
 import { use } from "react";
-import matchingData from "@/matching.json";
-import { AlarmClock, GalleryVerticalEnd, X } from "lucide-react";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
+import {
+  AlarmClock,
+  GalleryVerticalEnd,
+  X,
+} from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -84,36 +89,76 @@ export default function MatchingPage({
 }: {
   params: Promise<{ matchingId: string }>;
 }) {
+  const { questions, loading } = useSelector((state: RootState) => state.question);
   const router = useRouter();
   const resolvedParams = use(params);
-  const match = matchingData.find((m) => m.id === resolvedParams.matchingId);
+  
+  // Find the matching question based on _id
+  const matchingQuestion = questions?.find((q: any) => {
+    console.log('Comparing:', q.matching?._id, resolvedParams.matchingId);
+    return q.matching?._id.toString() === resolvedParams.matchingId;
+  });
+  
+  const matching = matchingQuestion?.matching;
 
-  // State tanımlamaları
-  const [matches, setMatches] = useState<{ [key: string]: string }>({});
-  const [questions] = useState(() =>
-    match?.questions.map((q, index) => ({
-      id: index.toString(),
-      title: q.title,
-      questions: q.question,
-      correctAnswer: q.correctAnswer,
-      dropZones: q.question.map((_, i) => `question-${index}-${i}`),
-    })) || []
-  );
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  console.log('Found matching:', matching); // Debug log
+
   const [showResults, setShowResults] = useState(false);
+  const [timer, setTimer] = useState({ minutes: 0, seconds: 0 });
+  const [timerActive, setTimerActive] = useState(true);
+  const [matches, setMatches] = useState<{ [key: string]: string }>({});
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [matchResults, setMatchResults] = useState({
     correct: 0,
     incorrect: 0,
     totalPoints: 0,
-    passed: false
+    passed: false,
   });
   const [matchStatus, setMatchStatus] = useState<{ [key: string]: boolean }>({});
-  const [timer, setTimer] = useState({ minutes: 0, seconds: 0 });
-  const [timerActive, setTimerActive] = useState(true);
   const [answers, setAnswers] = useState<string[]>([]);
-  
-  // Shuffle answers for display
-  const shuffledAnswers = useMemo(() => answers, [answers]);
+
+  const currentQuestion = matching?.questions?.[currentQuestionIndex];
+
+  useEffect(() => {
+    if (currentQuestion) {
+      setAnswers([...currentQuestion.correctAnswer].sort(() => Math.random() - 0.5));
+    }
+  }, [currentQuestion]);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (timerActive) {
+      interval = setInterval(() => {
+        setTimer((prev) => {
+          const newSeconds = prev.seconds + 1;
+          if (newSeconds === 60) {
+            return {
+              minutes: prev.minutes + 1,
+              seconds: 0,
+            };
+          }
+          return {
+            ...prev,
+            seconds: newSeconds,
+          };
+        });
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [timerActive]);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!matching) {
+    console.log('Available questions:', questions); // Debug log
+    return <div>Matching test not found for ID: {resolvedParams.matchingId}</div>;
+  }
+
+  if (!currentQuestion) {
+    return <div>No questions found in this matching test</div>;
+  }
 
   // Hook tanımlamaları
   const sensors = useSensors(
@@ -124,82 +169,82 @@ export default function MatchingPage({
   const [playDropSound] = useSound("/drop.mp3");
   const [playFailSound] = useSound("/fail.mp3");
 
-  // useEffect'ler buraya
-  useEffect(() => {
-    if (match) {
-      setAnswers([...match.questions[currentQuestionIndex].correctAnswer]
-        .sort(() => Math.random() - 0.5));
-    }
-  }, [match, currentQuestionIndex]);
-
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (timerActive) {
-      interval = setInterval(() => {
-        setTimer(prev => {
-          const newSeconds = prev.seconds + 1;
-          if (newSeconds === 60) {
-            return {
-              minutes: prev.minutes + 1,
-              seconds: 0
-            };
-          }
-          return {
-            ...prev,
-            seconds: newSeconds
-          };
-        });
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [timerActive]);
-
-  if (!match) return <div>Yükleniyor...</div>;
-
   function handleDragStart() {
     playPickupSound();
   }
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
+
     if (!over) return;
 
-    const answerId = active.id as string;
+    const answerId = active.id;
     const dropZoneId = over.id as string;
-
-    // Parse the dropZone id to get question and answer indices
-    const [_, questionIndex, answerIndex] = dropZoneId.split('-').map(Number);
     
-    // Check if the answer is correct
-    const isCorrect = answers[parseInt(answerId)] === 
-      questions[questionIndex].correctAnswer[answerIndex];
+    // Extract the index from the dropZoneId (e.g., "drop-0" -> 0)
+    const dropIndex = parseInt(dropZoneId.split('-')[1]);
+    // Extract the answer index from the answerId
+    const answerIndex = parseInt(answerId.toString());
+    
+    // Update matches state
+    setMatches(prev => ({
+      ...prev,
+      [dropZoneId]: answerId.toString()
+    }));
 
+    // Check if the answer is correct (indices match)
+    const isCorrect = answerIndex === dropIndex;
+    
+    // Update match status
+    setMatchStatus(prev => ({
+      ...prev,
+      [dropZoneId]: isCorrect
+    }));
+
+    // Play appropriate sound
     if (isCorrect) {
       playDropSound();
     } else {
       playFailSound();
     }
+  }
 
-    // Önceki eşleştirmeleri temizle
-    const newMatches = { ...matches };
-    Object.keys(newMatches).forEach((key) => {
-      if (newMatches[key] === answerId) {
-        delete newMatches[key];
+  function checkResults() {
+    const totalQuestions = currentQuestion?.question?.length || 0;
+    let correct = 0;
+    let incorrect = 0;
+
+    // Count correct and incorrect matches
+    Object.entries(matches).forEach(([dropZoneId, answerId]) => {
+      const dropIndex = parseInt(dropZoneId.split('-')[1]);
+      const answerIndex = parseInt(answerId);
+      if (dropIndex === answerIndex) {
+        correct++;
+      } else {
+        incorrect++;
       }
     });
 
-    // Yeni eşleştirmeyi ekle
-    newMatches[dropZoneId] = answerId;
-    setMatches(newMatches);
+    const totalPoints = (correct / totalQuestions) * 100;
+    const passed = totalPoints >= (matching?.accuracy || 0);
 
-    // Update match status
-    const newMatchStatus = { ...matchStatus };
-    newMatchStatus[dropZoneId] = isCorrect;
-    setMatchStatus(newMatchStatus);
+    setMatchResults({
+      correct,
+      incorrect,
+      totalPoints,
+      passed,
+    });
+
+    setShowResults(true);
   }
 
+  const handleSubmit = () => {
+    setTimerActive(false);
+    checkResults();
+  };
+
   const handleNext = () => {
-    if (currentQuestionIndex < match.questions.length - 1) {
+    if (currentQuestionIndex < matching.questions.length - 1) {
       setCurrentQuestionIndex((prev) => prev + 1);
     }
   };
@@ -208,36 +253,6 @@ export default function MatchingPage({
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex((prev) => prev - 1);
     }
-  };
-
-  const handleSubmit = () => {
-    setTimerActive(false); // Timer'ı durdur
-    let correctCount = 0;
-    let incorrectCount = 0;
-
-    questions[currentQuestionIndex].questions.forEach((_, index) => {
-      const dropZoneId = questions[currentQuestionIndex].dropZones[index];
-      const userAnswer = answers[parseInt(matches[dropZoneId] || '')];
-      const correctAnswer = questions[currentQuestionIndex].correctAnswer[index];
-
-      if (userAnswer === correctAnswer) {
-        correctCount++;
-      } else if (matches[dropZoneId]) {
-        incorrectCount++;
-      }
-    });
-
-    const totalPoints = (correctCount / questions[currentQuestionIndex].questions.length) * 100;
-    const passed = totalPoints >= 70;
-
-    setMatchResults({
-      correct: correctCount,
-      incorrect: incorrectCount,
-      totalPoints,
-      passed
-    });
-
-    setShowResults(true);
   };
 
   const handleDialogClose = () => {
@@ -299,11 +314,11 @@ export default function MatchingPage({
           <div className="p-1 bg-primary rounded-sm">
             <GalleryVerticalEnd color="white" />
           </div>
-          <p className="font-bold">{match.title}</p>
-          <p>{currentQuestionIndex + 1} ile {match.questionsCount}</p>
+          <p className="font-bold">{matching.title}</p>
+          <p>{currentQuestionIndex + 1} ile {matching.questions.length}</p>
         </div>
 
-        <h2 className="pt-5 font-bold text-lg">{questions[currentQuestionIndex].title}</h2>
+        <h2 className="pt-5 font-bold text-lg">{matching.questions[currentQuestionIndex].title}</h2>
         <p className="text-neutral-500">
           Sürükle bırak yaparak sorular ve cevaplarını eşleştiriniz.
         </p>
@@ -317,19 +332,19 @@ export default function MatchingPage({
           <div className="flex flex-col pt-10 gap-8">
             <div className="border-b pb-4">
               <div className="flex flex-wrap gap-4 mb-4">
-                {questions[currentQuestionIndex].questions.map((question, qIndex) => (
+                {currentQuestion?.question?.map((question, qIndex) => (
                   <div key={qIndex} className="flex flex-col gap-2">
                     <div className="flex items-center justify-center border border-gray-300 bg-gray-100 p-2 rounded min-w-[200px]">
                       {renderQuestionContent(question)}
                     </div>
-                    <Droppable id={questions[currentQuestionIndex].dropZones[qIndex]}>
-                      {matches[questions[currentQuestionIndex].dropZones[qIndex]] && (
+                    <Droppable id={`drop-${qIndex}`}>
+                      {matches[`drop-${qIndex}`] && (
                         <div className={`p-2 rounded w-full text-center ${
-                          matchStatus[questions[currentQuestionIndex].dropZones[qIndex]]
+                          matchStatus[`drop-${qIndex}`]
                             ? 'bg-green-100'
                             : 'bg-red-100'
                         }`}>
-                          {answers[parseInt(matches[questions[currentQuestionIndex].dropZones[qIndex]])]}
+                          {currentQuestion?.correctAnswer[parseInt(matches[`drop-${qIndex}`])]}
                         </div>
                       )}
                     </Droppable>
@@ -339,7 +354,7 @@ export default function MatchingPage({
             </div>
 
             <div className="flex flex-wrap gap-2 mt-4 sticky bottom-4 bg-white p-4 border rounded shadow-lg">
-              {shuffledAnswers.map((answer, index) => (
+              {currentQuestion?.correctAnswer.map((answer, index) => (
                 <Draggable key={index} id={index.toString()}>
                   <div
                     className={`flex items-center justify-center min-w-[200px] h-12 rounded
@@ -367,17 +382,17 @@ export default function MatchingPage({
           </Button>
           <Button
             onClick={
-              currentQuestionIndex === match.questions.length - 1
+              currentQuestionIndex === matching.questions.length - 1
                 ? handleSubmit
                 : handleNext
             }
             variant={
-              currentQuestionIndex === match.questions.length - 1
+              currentQuestionIndex === matching.questions.length - 1
                 ? "destructive"
                 : "default"
             }
           >
-            {currentQuestionIndex === match.questions.length - 1
+            {currentQuestionIndex === matching.questions.length - 1
               ? "Sınavı Bitir"
               : "Sonraki Soru"}
           </Button>
@@ -385,7 +400,7 @@ export default function MatchingPage({
 
         <ScrollArea className="my-5">
           <div className="grid grid-cols-10 gap-2">
-            {match.questions.map((_, index) => (
+            {matching.questions.map((_, index) => (
               <Button
                 key={index}
                 variant="outline"
@@ -406,10 +421,10 @@ export default function MatchingPage({
           <div className="pt-4 space-y-2">
             <DialogDescription asChild>
               <div>
-                <div>Toplam Soru: {questions[currentQuestionIndex].questions.length}</div>
+                <div>Toplam Soru: {currentQuestion?.question?.length || 0}</div>
                 <div className="text-green-600">Doğru Sayısı: {matchResults.correct}</div>
                 <div className="text-red-600">Yanlış Sayısı: {matchResults.incorrect}</div>
-                <div>Boş Sayısı: {questions[currentQuestionIndex].questions.length - (matchResults.correct + matchResults.incorrect)}</div>
+                <div>Boş Sayısı: {(currentQuestion?.question?.length || 0) - (matchResults.correct + matchResults.incorrect)}</div>
                 <div className="font-bold">Başarı Yüzdesi: %{matchResults.totalPoints.toFixed(0)}</div>
                 <div className={`text-lg font-bold ${matchResults.passed ? 'text-green-600' : 'text-red-600'}`}>
                   {matchResults.passed ? 'Tebrikler, Başarılı Oldunuz!' : 'Üzgünüz, Başarısız Oldunuz!'}

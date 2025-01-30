@@ -14,7 +14,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import exams from "@/exams.json";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useRouter } from "next/navigation";
 import { AlarmClock, BookOpenText, X } from "lucide-react";
@@ -25,6 +26,7 @@ export default function ExamPage({
   params: Promise<{ examId: string }>;
 }) {
   const router = useRouter();
+  const { questions, loading } = useSelector((state: RootState) => state.question);
   const [userAnswers, setUserAnswers] = useState<{ [key: string]: string }>({});
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showResults, setShowResults] = useState(false);
@@ -67,10 +69,14 @@ export default function ExamPage({
   }, [timerActive]);
 
   const resolvedParams = use(params);
-  const exam = exams.find((exam) => exam.id === resolvedParams.examId);
+  const exam = questions?.find((q: any) => q.exams?._id === resolvedParams.examId)?.exams;
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   if (!exam) {
-    return <div>Sınav bulunamadı</div>;
+    return <div>Exam not found</div>;
   }
 
   const handleSubmit = () => {
@@ -220,21 +226,24 @@ export default function ExamPage({
               value={userAnswers[currentQuestionIndex] || ""}
               onValueChange={handleAnswerChange}
             >
-              {currentQuestion.options.map((option, optionIndex) => (
-                <div 
-                  key={optionIndex} 
-                  className="flex items-center space-x-2"
-                  onClick={() => playPickupSound()} // Tıklama sesini ekle
-                >
-                  <RadioGroupItem
-                    value={option.charAt(0)}
-                    id={`${currentQuestionIndex}-${optionIndex}`}
-                  />
-                  <Label htmlFor={`${currentQuestionIndex}-${optionIndex}`}>
-                    {renderQuestionContent(option)}
-                  </Label>
-                </div>
-              ))}
+              {currentQuestion.options.map((option, optionIndex) => {
+                const letters = ['A', 'B', 'C', 'D'];
+                return (
+                  <div 
+                    key={optionIndex} 
+                    className="flex items-center space-x-2"
+                    onClick={() => playPickupSound()} // Tıklama sesini ekle
+                  >
+                    <RadioGroupItem
+                      value={letters[optionIndex]}
+                      id={`${currentQuestionIndex}-${optionIndex}`}
+                    />
+                    <Label htmlFor={`${currentQuestionIndex}-${optionIndex}`}>
+                      {letters[optionIndex]}) {renderQuestionContent(option)}
+                    </Label>
+                  </div>
+                );
+              })}
             </RadioGroup>
           </CardContent>
         </Card>
