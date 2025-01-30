@@ -27,6 +27,12 @@ const formSchema = z.object({
       question: z.string().min(2, { message: "Soru en az 2 karakter olmalıdır" }),
       options: z.array(z.string()).optional(),
       correctAnswer: z.string().or(z.array(z.string())).or(z.array(z.number())),
+      fractions: z.array(
+        z.object({
+          expression: z.string(),
+          answer: z.string()
+        })
+      ).optional(),
     })
   ),
 })
@@ -40,7 +46,7 @@ export default function TestEklePage() {
       title: "",
       category: "",
       description: "",
-      questions: [{ title: "", question: "", options: [], correctAnswer: "" }],
+      questions: [{ title: "", question: "", options: [], correctAnswer: "", fractions: [] }],
     },
   })
 
@@ -208,7 +214,7 @@ export default function TestEklePage() {
 
       case "Kesir":
         return (
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="space-y-6">
             <FormField
               control={form.control}
               name={`questions.${index}.title`}
@@ -222,32 +228,69 @@ export default function TestEklePage() {
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name={`questions.${index}.question`}
-              render={({ field }) => (
-                <FormItem className="col-span-2 md:col-span-1">
-                  <FormLabel>Kesir İfadesi</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Örn: 6x1/2" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name={`questions.${index}.correctAnswer`}
-              render={({ field }) => (
-                <FormItem className="col-span-2 md:col-span-1">
-                  <FormLabel>Doğru Cevap</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Örn: 13/2" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            
+            {/* Fractions Array */}
+            <div className="space-y-4">
+              {form.watch(`questions.${index}.fractions`, []).map((_, fractionIndex) => (
+                <div key={fractionIndex} className="grid gap-6 md:grid-cols-2 p-4 border rounded-lg relative">
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                    onClick={() => {
+                      const currentFractions = form.getValues(`questions.${index}.fractions`) || []
+                      form.setValue(
+                        `questions.${index}.fractions`,
+                        currentFractions.filter((_, i) => i !== fractionIndex)
+                      )
+                    }}
+                  >
+                    ×
+                  </Button>
+                  <FormField
+                    control={form.control}
+                    name={`questions.${index}.fractions.${fractionIndex}.expression`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Kesir İfadesi {fractionIndex + 1}</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Örn: 6x1/2" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name={`questions.${index}.fractions.${fractionIndex}.answer`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Doğru Cevap {fractionIndex + 1}</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Örn: 13/2" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              ))}
+            </div>
+            
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                const currentFractions = form.getValues(`questions.${index}.fractions`) || []
+                form.setValue(`questions.${index}.fractions`, [
+                  ...currentFractions,
+                  { expression: "", answer: "" }
+                ])
+              }}
+            >
+              Kesir Ekle
+            </Button>
           </div>
         )
 
@@ -360,7 +403,7 @@ export default function TestEklePage() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => append({ title: "", question: "", options: [], correctAnswer: "" })}
+                  onClick={() => append({ title: "", question: "", options: [], correctAnswer: "", fractions: [] })}
                 >
                   Yeni Soru Ekle
                 </Button>
