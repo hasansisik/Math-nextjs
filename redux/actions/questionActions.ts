@@ -168,6 +168,7 @@ export const createFraction = createAsyncThunk(
 export const updateFraction = createAsyncThunk(
   "question/updateFraction",
   async ({ id, payload }: { id: string; payload: FractionPayload }, thunkAPI) => {
+    console.log("updateFraction", payload)
     try {
       const { data } = await axios.put(`${server}/question/fraction/${id}`, payload);
       return data.data;
