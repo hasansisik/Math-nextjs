@@ -82,7 +82,7 @@ export default function Home() {
       <div className="flex p-8">
         <main className="flex flex-col items-center gap-8 w-full">
           {selectedFilter === "exam" && (
-            <div className="flex flex-col sm:flex-row gap-6 w-full">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full">
               {/* Sınavlar Kartı */}
               {exams.map((exam) => (
                 <Card
@@ -145,7 +145,7 @@ export default function Home() {
             </div>
           )}
           {selectedFilter === "matching" && (
-            <div className="flex flex-col sm:flex-row gap-6 w-full">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full">
               {/* Sınavlar Kartı */}
               {matching.map((match) => (
                 <Card
@@ -208,7 +208,7 @@ export default function Home() {
             </div>
           )}
           {selectedFilter === "placement" && (
-            <div className="flex flex-col sm:flex-row gap-6 w-full">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full">
               {/* Sınavlar Kartı */}
               {placement.map((place) => (
                 <Card
@@ -270,8 +270,70 @@ export default function Home() {
               ))}
             </div>
           )}
+          {selectedFilter === "fraction" && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full">
+              {fraction.map((frac) => (
+                <Card
+                  key={frac._id}
+                  className="flex-1 cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={() => router.push(`/fraction/${frac._id}`)}
+                >
+                  <CardHeader>
+                    <div className="relative w-full h-32 mb-4">
+                      <Image
+                        src="/examBanner3.jpg"
+                        alt="Course Image"
+                        layout="fill"
+                        objectFit="cover"
+                        className="rounded-lg"
+                      />
+                    </div>
+                    <CardTitle>{frac.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-col">
+                      <div className="flex justify-between">
+                        <div className="flex text-center flex-row gap-4">
+                          <CircularProgress
+                            value={frac.accuracy}
+                            color="#34d399"
+                          />
+                          <div>
+                            <p>Zorluk</p>
+                            <p>{frac.accuracy}%</p>
+                          </div>
+                        </div>
+                        <div className="flex text-center flex-row  gap-2">
+                          <CircularProgress
+                            value={frac.completionRate}
+                            color="#34d399"
+                          />
+                          <div>
+                            <p>Başarı Yüzdesi</p>
+                            <p>{frac.completionRate}%</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex flex-col justify-between mt-4">
+                        <p className="px-4 py-1 bg-gray-100 rounded-full w-fit">
+                          {frac.category}
+                        </p>
+                        <div className="pt-4 flex flex-row justify-between">
+                          <p className="text-base">
+                            Oluşturulma tarihi:{" "}
+                            {format(new Date(frac.createdAt), "dd/MM/yyyy")}
+                          </p>
+                          <p>Soru Sayısı: {frac.questionsCount}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
           {selectedFilter === "all" && (
-            <div className="flex flex-col sm:flex-row gap-6 w-full">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full">
               {/* Exam Cards */}
               {exams.map((exam) => (
                 <Card
