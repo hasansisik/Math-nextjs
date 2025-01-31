@@ -111,8 +111,8 @@ export default function MatchingPage({
   const [matchResults, setMatchResults] = useState({
     correct: 0,
     incorrect: 0,
+    empty: 0,
     totalPoints: 0,
-    passed: false,
   });
   const [matchStatus, setMatchStatus] = useState<{ [key: string]: boolean }>({});
   const [answers, setAnswers] = useState<string[]>([]);
@@ -213,26 +213,33 @@ export default function MatchingPage({
     const totalQuestions = currentQuestion?.question?.length || 0;
     let correct = 0;
     let incorrect = 0;
+    let empty = 0;
 
-    // Count correct and incorrect matches
-    Object.entries(matches).forEach(([dropZoneId, answerId]) => {
-      const dropIndex = parseInt(dropZoneId.split('-')[1]);
-      const answerIndex = parseInt(answerId);
-      if (dropIndex === answerIndex) {
-        correct++;
+    // Count correct, incorrect, and empty matches
+    currentQuestion?.question?.forEach((_, index) => {
+      const dropZoneId = `drop-${index}`;
+      if (matches[dropZoneId]) {
+        const answerIndex = parseInt(matches[dropZoneId]);
+        if (index === answerIndex) {
+          correct++;
+        } else {
+          incorrect++;
+        }
       } else {
-        incorrect++;
+        empty++;
       }
     });
 
-    const totalPoints = (correct / totalQuestions) * 100;
-    const passed = totalPoints >= (matching?.accuracy || 0);
+    // Her doğru 5 puan, her 3 yanlış 1 doğruyu götürür
+    const canceledCorrects = Math.floor(incorrect / 3);
+    const effectiveCorrects = Math.max(0, correct - canceledCorrects);
+    const totalPoints = effectiveCorrects * 5;
 
     setMatchResults({
       correct,
       incorrect,
+      empty,
       totalPoints,
-      passed,
     });
 
     setShowResults(true);
@@ -416,18 +423,35 @@ export default function MatchingPage({
       <Dialog open={showResults} onOpenChange={handleDialogClose}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Eşleştirme Sonucu</DialogTitle>
+            <DialogTitle>Sınav Sonucu</DialogTitle>
+            <DialogDescription className="text-primary font-medium mt-2">
+              Doğrular 5 puan ve 3 yanlış 1 doğruyu götürüyor
+            </DialogDescription>
           </DialogHeader>
-          <div className="pt-4 space-y-2">
+          <div className="pt-4 space-y-3">
             <DialogDescription asChild>
-              <div>
-                <div>Toplam Soru: {currentQuestion?.question?.length || 0}</div>
-                <div className="text-green-600">Doğru Sayısı: {matchResults.correct}</div>
-                <div className="text-red-600">Yanlış Sayısı: {matchResults.incorrect}</div>
-                <div>Boş Sayısı: {(currentQuestion?.question?.length || 0) - (matchResults.correct + matchResults.incorrect)}</div>
-                <div className="font-bold">Başarı Yüzdesi: %{matchResults.totalPoints.toFixed(0)}</div>
-                <div className={`text-lg font-bold ${matchResults.passed ? 'text-green-600' : 'text-red-600'}`}>
-                  {matchResults.passed ? 'Tebrikler, Başarılı Oldunuz!' : 'Üzgünüz, Başarısız Oldunuz!'}
+              <div className="space-y-3">
+                <div className="flex justify-between items-center py-2 border-b">
+                  <span>Toplam Soru:</span>
+                  <span className="font-medium">
+                    {currentQuestion?.question?.length || 0}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b">
+                  <span>Doğru Sayısı:</span>
+                  <span className="font-medium text-green-600">{matchResults.correct}</span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b">
+                  <span>Yanlış Sayısı:</span>
+                  <span className="font-medium text-red-600">{matchResults.incorrect}</span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b">
+                  <span>Boş Sayısı:</span>
+                  <span className="font-medium text-gray-600">{matchResults.empty}</span>
+                </div>
+                <div className="flex justify-between items-center py-2 bg-primary/10 px-4 rounded-lg">
+                  <span className="font-bold">Toplam Puan:</span>
+                  <span className="font-bold text-primary">{matchResults.totalPoints}</span>
                 </div>
               </div>
             </DialogDescription>

@@ -31,8 +31,8 @@ const FractionPage = ({ params }: { params: Usable<{ fractionId: string }> }) =>
   const [matchResults, setMatchResults] = useState({
     correct: 0,
     incorrect: 0,
+    empty: 0,
     totalPoints: 0,
-    passed: false,
   });
   const [timer, setTimer] = useState({ minutes: 0, seconds: 0 });
   const [timerActive, setTimerActive] = useState(true);
@@ -120,33 +120,38 @@ const FractionPage = ({ params }: { params: Usable<{ fractionId: string }> }) =>
   const handleSubmit = () => {
     setTimerActive(false);
 
-    // Calculate results
     let correct = 0;
     let incorrect = 0;
+    let empty = 0;
+    const totalQuestions = fractionData.questions.reduce((acc, q) => acc + q.question.length, 0);
 
     fractionData.questions.forEach((question) => {
       question.question.forEach((q, index) => {
         const userAnswer = userAnswers[index];
         const [correctNumerator, correctDenominator] = q.answer.split('/');
         
-        if (userAnswer) {
+        if (userAnswer?.numerator || userAnswer?.denominator) {
           if (userAnswer.numerator === correctNumerator && userAnswer.denominator === correctDenominator) {
             correct++;
           } else {
             incorrect++;
           }
+        } else {
+          empty++;
         }
       });
     });
 
-    const totalQuestions = fractionData.questions.reduce((acc, q) => acc + q.question.length, 0);
-    const totalPoints = (correct / totalQuestions) * 100;
+    // Her doğru 5 puan, her 3 yanlış 1 doğruyu götürür
+    const canceledCorrects = Math.floor(incorrect / 3);
+    const effectiveCorrects = Math.max(0, correct - canceledCorrects);
+    const totalPoints = effectiveCorrects * 5;
     
     setMatchResults({
       correct,
       incorrect,
+      empty,
       totalPoints,
-      passed: totalPoints >= 70 // Assuming 70% is the passing threshold
     });
 
     setShowResults(true);
@@ -282,29 +287,34 @@ const FractionPage = ({ params }: { params: Usable<{ fractionId: string }> }) =>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Sınav Sonucu</DialogTitle>
+            <DialogDescription className="text-primary font-medium mt-2">
+              Doğrular 5 puan ve 3 yanlış 1 doğruyu götürüyor
+            </DialogDescription>
           </DialogHeader>
-          <div className="pt-4 space-y-2">
+          <div className="pt-4 space-y-3">
             <DialogDescription asChild>
-              <div>
-                <div>Toplam Soru: {fractionData.questions.length}</div>
-                <div className="text-green-600">
-                  Doğru Sayısı: {matchResults.correct}
+              <div className="space-y-3">
+                <div className="flex justify-between items-center py-2 border-b">
+                  <span>Toplam Soru:</span>
+                  <span className="font-medium">
+                    {fractionData.questions.reduce((acc, q) => acc + q.question.length, 0)}
+                  </span>
                 </div>
-                <div className="text-red-600">
-                  Yanlış Sayısı: {matchResults.incorrect}
+                <div className="flex justify-between items-center py-2 border-b">
+                  <span>Doğru Sayısı:</span>
+                  <span className="font-medium text-green-600">{matchResults.correct}</span>
                 </div>
-                <div>Boş Sayısı: 0</div>
-                <div className="font-bold">
-                  Başarı Yüzdesi: %{matchResults.totalPoints.toFixed(0)}
+                <div className="flex justify-between items-center py-2 border-b">
+                  <span>Yanlış Sayısı:</span>
+                  <span className="font-medium text-red-600">{matchResults.incorrect}</span>
                 </div>
-                <div
-                  className={`text-lg font-bold ${
-                    matchResults.passed ? "text-green-600" : "text-red-600"
-                  }`}
-                >
-                  {matchResults.passed
-                    ? "Tebrikler, Başarılı Oldunuz!"
-                    : "Üzgünüz, Başarısız Oldunuz!"}
+                <div className="flex justify-between items-center py-2 border-b">
+                  <span>Boş Sayısı:</span>
+                  <span className="font-medium text-gray-600">{matchResults.empty}</span>
+                </div>
+                <div className="flex justify-between items-center py-2 bg-primary/10 px-4 rounded-lg">
+                  <span className="font-bold">Toplam Puan:</span>
+                  <span className="font-bold text-primary">{matchResults.totalPoints}</span>
                 </div>
               </div>
             </DialogDescription>

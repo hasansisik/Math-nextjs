@@ -33,8 +33,8 @@ export default function ExamPage({
   const [examResults, setExamResults] = useState({
     correct: 0,
     incorrect: 0,
+    empty: 0,
     totalPoints: 0,
-    passed: false,
   });
 
   const [timer, setTimer] = useState({ minutes: 0, seconds: 0 });
@@ -80,27 +80,31 @@ export default function ExamPage({
   }
 
   const handleSubmit = () => {
-    setTimerActive(false); // Timer'ı durdur
+    setTimerActive(false);
     let correctCount = 0;
     let incorrectCount = 0;
+    let emptyCount = 0;
 
     exam.questions.forEach((question, index) => {
       if (userAnswers[index] === question.correctAnswer) {
         correctCount++;
       } else if (userAnswers[index]) {
-        // Only count as incorrect if answered
         incorrectCount++;
+      } else {
+        emptyCount++;
       }
     });
 
-    const totalPoints = correctCount * 2;
-    const passed = totalPoints >= 70;
+    // Her doğru 5 puan, her 3 yanlış 1 doğruyu götürür
+    const canceledCorrects = Math.floor(incorrectCount / 3);
+    const effectiveCorrects = Math.max(0, correctCount - canceledCorrects);
+    const totalPoints = effectiveCorrects * 5;
 
     setExamResults({
       correct: correctCount,
       incorrect: incorrectCount,
+      empty: emptyCount,
       totalPoints,
-      passed,
     });
 
     setShowResults(true);
@@ -291,33 +295,32 @@ export default function ExamPage({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Sınav Sonucu</DialogTitle>
+            <DialogDescription className="text-primary font-medium mt-2">
+              Doğrular 5 puan ve 3 yanlış 1 doğruyu götürüyor
+            </DialogDescription>
           </DialogHeader>
-          <div className="pt-4 space-y-2">
+          <div className="pt-4 space-y-3">
             <DialogDescription asChild>
-              <div>
-                <div>Toplam Soru: {exam.questions.length}</div>
-                <div className="text-green-600">
-                  Doğru Sayısı: {examResults.correct}
+              <div className="space-y-3">
+                <div className="flex justify-between items-center py-2 border-b">
+                  <span>Toplam Soru:</span>
+                  <span className="font-medium">{exam.questions.length}</span>
                 </div>
-                <div className="text-red-600">
-                  Yanlış Sayısı: {examResults.incorrect}
+                <div className="flex justify-between items-center py-2 border-b">
+                  <span>Doğru Sayısı:</span>
+                  <span className="font-medium text-green-600">{examResults.correct}</span>
                 </div>
-                <div>
-                  Boş Sayısı:{" "}
-                  {exam.questions.length -
-                    (examResults.correct + examResults.incorrect)}
+                <div className="flex justify-between items-center py-2 border-b">
+                  <span>Yanlış Sayısı:</span>
+                  <span className="font-medium text-red-600">{examResults.incorrect}</span>
                 </div>
-                <div className="font-bold">
-                  Toplam Puan: {examResults.totalPoints}
+                <div className="flex justify-between items-center py-2 border-b">
+                  <span>Boş Sayısı:</span>
+                  <span className="font-medium text-gray-600">{examResults.empty}</span>
                 </div>
-                <div
-                  className={`text-lg font-bold ${
-                    examResults.passed ? "text-green-600" : "text-red-600"
-                  }`}
-                >
-                  {examResults.passed
-                    ? "Yazılı Sınavı Geçtiniz!"
-                    : "Yazılı Sınavdan Kaldınız!"}
+                <div className="flex justify-between items-center py-2 bg-primary/10 px-4 rounded-lg">
+                  <span className="font-bold">Toplam Puan:</span>
+                  <span className="font-bold text-primary">{examResults.totalPoints}</span>
                 </div>
               </div>
             </DialogDescription>

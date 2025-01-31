@@ -90,8 +90,8 @@ const MatchingPage = ({ params }: { params: Usable<{ placementId: string }> }) =
   const [matchResults, setMatchResults] = useState({
     correct: 0,
     incorrect: 0,
+    empty: 0,
     totalPoints: 0,
-    passed: false,
   });
   const [droppedItems, setDroppedItems] = useState<{ [key: string]: string }>({});
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -179,17 +179,36 @@ const MatchingPage = ({ params }: { params: Usable<{ placementId: string }> }) =
     setTimerActive(false);
     const currentQuestion = placement.questions[currentQuestionIndex];
     const correctOrder = currentQuestion.correctAnswer.map(String);
+    const totalQuestions = correctOrder.length;
+    
+    let correct = 0;
+    let incorrect = 0;
+    let empty = 0;
 
-    const isCorrect =
-      currentQuestion.type === ">"
-        ? JSON.stringify(items) === JSON.stringify(correctOrder)
-        : JSON.stringify(items) === JSON.stringify([...correctOrder].reverse());
+    // Check each position for correctness
+    correctOrder.forEach((correctAnswer, index) => {
+      const droppedItem = droppedItems[correctAnswer];
+      if (droppedItem) {
+        if (droppedItem === correctAnswer) {
+          correct++;
+        } else {
+          incorrect++;
+        }
+      } else {
+        empty++;
+      }
+    });
+
+    // Her doğru 5 puan, her 3 yanlış 1 doğruyu götürür
+    const canceledCorrects = Math.floor(incorrect / 3);
+    const effectiveCorrects = Math.max(0, correct - canceledCorrects);
+    const totalPoints = effectiveCorrects * 5;
 
     setMatchResults({
-      correct: isCorrect ? 1 : 0,
-      incorrect: isCorrect ? 0 : 1,
-      totalPoints: isCorrect ? 100 : 0,
-      passed: isCorrect,
+      correct,
+      incorrect,
+      empty,
+      totalPoints,
     });
 
     setShowResults(true);
@@ -350,9 +369,7 @@ const MatchingPage = ({ params }: { params: Usable<{ placementId: string }> }) =
               <Button
                 key={index}
                 variant="outline"
-                className={`w-8 h-8 ${
-                  currentQuestionIndex === index ? "bg-primary text-white" : ""
-                }`}
+               
                 onClick={() => setCurrentQuestionIndex(index)}
               >
                 {index + 1}
@@ -365,18 +382,35 @@ const MatchingPage = ({ params }: { params: Usable<{ placementId: string }> }) =
       <Dialog open={showResults} onOpenChange={setShowResults}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Test Sonuçları</DialogTitle>
+            <DialogTitle>Sınav Sonucu</DialogTitle>
+            <DialogDescription className="text-primary font-medium mt-2">
+              Doğrular 5 puan ve 3 yanlış 1 doğruyu götürüyor
+            </DialogDescription>
           </DialogHeader>
-          <div className="pt-4 space-y-2">
+          <div className="pt-4 space-y-3">
             <DialogDescription asChild>
-              <div>
-                <div>Toplam Soru: {placement.questions[currentQuestionIndex].correctAnswer.length}</div>
-                <div className="text-green-600">Doğru Sayısı: {matchResults.correct}</div>
-                <div className="text-red-600">Yanlış Sayısı: {matchResults.incorrect}</div>
-                <div>Boş Sayısı: {placement.questions[currentQuestionIndex].correctAnswer.length - (matchResults.correct + matchResults.incorrect)}</div>
-                <div className="font-bold">Başarı Yüzdesi: %{matchResults.totalPoints.toFixed(0)}</div>
-                <div className={`text-lg font-bold ${matchResults.passed ? 'text-green-600' : 'text-red-600'}`}>
-                  {matchResults.passed ? 'Tebrikler, Başarılı Oldunuz!' : 'Üzgünüz, Başarısız Oldunuz!'}
+              <div className="space-y-3">
+                <div className="flex justify-between items-center py-2 border-b">
+                  <span>Toplam Soru:</span>
+                  <span className="font-medium">
+                    {placement.questions.length}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b">
+                  <span>Doğru Sayısı:</span>
+                  <span className="font-medium text-green-600">{matchResults.correct}</span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b">
+                  <span>Yanlış Sayısı:</span>
+                  <span className="font-medium text-red-600">{matchResults.incorrect}</span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b">
+                  <span>Boş Sayısı:</span>
+                  <span className="font-medium text-gray-600">{matchResults.empty}</span>
+                </div>
+                <div className="flex justify-between items-center py-2 bg-primary/10 px-4 rounded-lg">
+                  <span className="font-bold">Toplam Puan:</span>
+                  <span className="font-bold text-primary">{matchResults.totalPoints}</span>
                 </div>
               </div>
             </DialogDescription>
