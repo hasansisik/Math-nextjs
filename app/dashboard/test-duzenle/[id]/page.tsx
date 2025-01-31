@@ -30,9 +30,8 @@ export default function TestDuzenlePage({ params }: { params: { id: string } }) 
   const [selectedCategory, setSelectedCategory] = useState("")
   
   // Get tests from Redux state
-  const { questions: tests, loading } = useSelector((state: RootState) => state.question);
+  const { questions: tests } = useSelector((state: RootState) => state.question);
 
-  console.log("t1",tests)
   // ID'ye göre testi buluyoruz
   const test = tests?.find((item) => {
     if (item.exams && item.exams._id === params.id) return item.exams;
