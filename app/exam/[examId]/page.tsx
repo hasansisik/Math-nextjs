@@ -14,11 +14,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useSelector } from "react-redux";
-import { RootState } from "@/redux/store";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useRouter } from "next/navigation";
-import { AlarmClock, BookOpenText, X } from "lucide-react";
+import { AlarmClock, BookOpenText, X, Loader2 } from "lucide-react";
+import { getQuestions } from "@/redux/actions/questionActions";
+import { AppDispatch, RootState } from "@/redux/store";
+import { useDispatch, useSelector } from "react-redux";
 
 export default function ExamPage({
   params,
@@ -27,6 +28,7 @@ export default function ExamPage({
 }) {
   const router = useRouter();
   const { questions, loading } = useSelector((state: RootState) => state.question);
+  const dispatch = useDispatch<AppDispatch>();
   const [userAnswers, setUserAnswers] = useState<{ [key: string]: string }>({});
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showResults, setShowResults] = useState(false);
@@ -43,6 +45,11 @@ export default function ExamPage({
   const [playPickupSound] = useSound("/pickup.mp3");
   const [playCorrectSound] = useSound("/drop.mp3");
   const [playWrongSound] = useSound("/fail.mp3");
+
+  useEffect(() => {
+    dispatch(getQuestions());
+  }, [dispatch]);
+
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -76,7 +83,12 @@ export default function ExamPage({
   }
 
   if (!exam) {
-    return <div>Exam not found</div>;
+    return (
+      <div className="flex flex-1 items-center justify-center flex-col gap-2">
+        <Loader2 className="h-12 w-12 animate-spin text-green-500" />
+        <span>Yükleniyor...</span>
+      </div>
+    );
   }
 
   const handleSubmit = () => {

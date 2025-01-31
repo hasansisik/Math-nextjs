@@ -1,13 +1,11 @@
 "use client";
 import { Usable } from "react";
-import { AlarmClock, AlignVerticalJustifyCenter, X } from "lucide-react";
+import { AlarmClock, AlignVerticalJustifyCenter, X,Loader2 } from "lucide-react";
 import { useState, useEffect, use } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useRouter } from "next/navigation";
 import useSound from "use-sound";
-import { useSelector } from "react-redux";
-import { RootState } from "@/redux/store";
 import {
   Dialog,
   DialogContent,
@@ -16,12 +14,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { getQuestions } from "@/redux/actions/questionActions";
+import { AppDispatch, RootState } from "@/redux/store";
+import { useDispatch, useSelector } from "react-redux";
 
 const FractionPage = ({ params }: { params: Usable<{ fractionId: string }> }) => {
   const router = useRouter();
   const unwrappedParams = use(params);
   const { questions } = useSelector((state: RootState) => state.question);
-  
+  const dispatch = useDispatch<AppDispatch>();
+
   const fractionData = questions?.find((q: any) => 
     q.fraction && q.fraction._id === unwrappedParams.fractionId
   )?.fraction;
@@ -41,10 +43,8 @@ const FractionPage = ({ params }: { params: Usable<{ fractionId: string }> }) =>
   const [playWrongSound] = useSound("/pickup.mp3");
 
   useEffect(() => {
-    if (!fractionData) {
-      router.push('/');
-    }
-  }, [fractionData, router]);
+    dispatch(getQuestions());
+  }, [dispatch]);
 
   // Timer effect
   useEffect(() => {
@@ -76,7 +76,12 @@ const FractionPage = ({ params }: { params: Usable<{ fractionId: string }> }) =>
   }, [timerActive]);
 
   if (!fractionData) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex flex-1 items-center justify-center flex-col gap-2">
+        <Loader2 className="h-12 w-12 animate-spin text-green-500" />
+        <span>Yükleniyor...</span>
+      </div>
+    );  
   }
 
   const handleAnswerChange = (index: number, part: string, value: string) => {

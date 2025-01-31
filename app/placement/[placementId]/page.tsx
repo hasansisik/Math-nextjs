@@ -1,8 +1,6 @@
 "use client";
 import { use, Usable } from "react";
-import { useSelector } from "react-redux";
-import { RootState } from "@/redux/store";
-import { AlarmClock, AlignHorizontalDistributeStart, X } from "lucide-react";
+import { AlarmClock, AlignHorizontalDistributeStart, X ,Loader2} from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -27,6 +25,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { getQuestions } from "@/redux/actions/questionActions";
+import { AppDispatch, RootState } from "@/redux/store";
+import { useDispatch, useSelector } from "react-redux";
 
 function Draggable({
   id,
@@ -83,6 +84,7 @@ function Droppable({
 const MatchingPage = ({ params }: { params: Usable<{ placementId: string }> }) => {
   const { questions, loading } = useSelector((state: RootState) => state.question);
   const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
   const [showResults, setShowResults] = useState(false);
   const [timer, setTimer] = useState({ minutes: 0, seconds: 0 });
   const [timerActive, setTimerActive] = useState(true);
@@ -99,14 +101,6 @@ const MatchingPage = ({ params }: { params: Usable<{ placementId: string }> }) =
   const resolvedParams = use(params);
   const placement = questions?.find((q: any) => q.placement?._id === resolvedParams.placementId)?.placement;
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (!placement) {
-    return <div>Placement test not found</div>;
-  }
-
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor)
@@ -114,6 +108,10 @@ const MatchingPage = ({ params }: { params: Usable<{ placementId: string }> }) =
   const [playPickupSound] = useSound("/pickup.mp3");
   const [playDropSound] = useSound("/drop.mp3");
   const [playFailSound] = useSound("/fail.mp3");
+
+  useEffect(() => {
+    dispatch(getQuestions());
+  }, [dispatch]);
 
   // Items için useEffect
   useEffect(() => {
@@ -150,6 +148,24 @@ const MatchingPage = ({ params }: { params: Usable<{ placementId: string }> }) =
 
     return () => clearInterval(interval);
   }, [timerActive]);
+
+  if (loading) {
+    return (
+      <div className="flex flex-1 items-center justify-center flex-col gap-2">
+        <Loader2 className="h-12 w-12 animate-spin text-green-500" />
+        <span>Yükleniyor...</span>
+      </div>
+    );
+  }
+
+  if (!placement) {
+    return (
+      <div className="flex flex-1 items-center justify-center flex-col gap-2">
+        <Loader2 className="h-12 w-12 animate-spin text-green-500" />
+        <span>Yükleniyor...</span>
+      </div>
+    );
+  }
 
   function handleDragStart() {
     playPickupSound();

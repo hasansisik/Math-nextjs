@@ -1,11 +1,10 @@
 "use client";
 import { use } from "react";
-import { useSelector } from "react-redux";
-import { RootState } from "@/redux/store";
 import {
   AlarmClock,
   GalleryVerticalEnd,
   X,
+  Loader2
 } from "lucide-react";
 import {
   DndContext,
@@ -31,6 +30,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { getQuestions } from "@/redux/actions/questionActions";
+import { AppDispatch, RootState } from "@/redux/store";
+import { useDispatch, useSelector } from "react-redux";
 
 function Draggable({
   id,
@@ -101,8 +103,8 @@ export default function MatchingPage({
   
   const matching = matchingQuestion?.matching;
 
-  console.log('Found matching:', matching); // Debug log
 
+  const dispatch = useDispatch<AppDispatch>();
   const [showResults, setShowResults] = useState(false);
   const [timer, setTimer] = useState({ minutes: 0, seconds: 0 });
   const [timerActive, setTimerActive] = useState(true);
@@ -124,6 +126,10 @@ export default function MatchingPage({
       setAnswers([...currentQuestion.correctAnswer].sort(() => Math.random() - 0.5));
     }
   }, [currentQuestion]);
+
+  useEffect(() => {
+    dispatch(getQuestions());
+  }, [dispatch]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -148,12 +154,20 @@ export default function MatchingPage({
   }, [timerActive]);
 
   if (loading) {
-    return <div>Loading...</div>;
-  }
+    return (
+      <div className="flex flex-1 items-center justify-center flex-col gap-2">
+        <Loader2 className="h-12 w-12 animate-spin text-green-500" />
+        <span>Yükleniyor...</span>
+      </div>
+    );  }
 
   if (!matching) {
-    console.log('Available questions:', questions); // Debug log
-    return <div>Matching test not found for ID: {resolvedParams.matchingId}</div>;
+    return (
+      <div className="flex flex-1 items-center justify-center flex-col gap-2">
+        <Loader2 className="h-12 w-12 animate-spin text-green-500" />
+        <span>Yükleniyor...</span>
+      </div>
+    ); 
   }
 
   if (!currentQuestion) {
