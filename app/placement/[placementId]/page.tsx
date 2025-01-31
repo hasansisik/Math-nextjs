@@ -216,7 +216,7 @@ const MatchingPage = ({ params }: { params: Usable<{ placementId: string }> }) =
       }
     });
 
-    // Her doğru 5 puan, her 3 yanlış 1 doğruyu götürür
+    // Her doğru 5 puan ve 3 yanlış 1 doğruyu götürür
     const canceledCorrects = Math.floor(incorrect / 3);
     const effectiveCorrects = Math.max(0, correct - canceledCorrects);
     const totalPoints = effectiveCorrects * 5;
@@ -291,7 +291,7 @@ const MatchingPage = ({ params }: { params: Usable<{ placementId: string }> }) =
           <div className="flex flex-col pt-10 gap-8">
             <div className="border-b pb-4">
               {/* Yuva alanı */}
-              <div className="flex flex-wrap gap-4 mb-4">
+              <div className="flex flex-wrap sm:justify-start justify-center gap-4 mb-4">
                 {placement.questions[currentQuestionIndex].correctAnswer.map(
                   (correctAnswer, index) => (
                     <div key={index} className="flex items-center">
