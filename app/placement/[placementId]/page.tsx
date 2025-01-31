@@ -122,6 +122,7 @@ const MatchingPage = ({ params }: { params: Usable<{ placementId: string }> }) =
         .map(String)
         .sort(() => 0.5 - Math.random());
       setItems(shuffledItems);
+      setDroppedItems({}); // Reset droppedItems when question changes
     }
   }, [placement, currentQuestionIndex]);
 

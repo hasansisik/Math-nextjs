@@ -32,7 +32,7 @@ const getInitialValues = (type: string) => {
         ...baseInitialValues,
         questions: [{
           question: "",
-          options: ["", "", "", ""],
+          options: [],
           correctAnswer: ""
         }]
       }
@@ -239,9 +239,9 @@ export default function TestEklePage() {
                 name={`questions.${index}.options`}
                 as="textarea"
                 className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                placeholder="A) Seçenek 1, B) Seçenek 2, C) Seçenek 3, D) Seçenek 4"
+                placeholder="Seçenek 1,Seçenek 2,Seçenek 3,Seçenek 4"
                 onChange={(e: any) => {
-                  const options = e.target.value.split(',').map(opt => opt.trim());
+                  const options = e.target.value ? e.target.value.split(',').map(opt => opt.trim().replace(/^\s+|\s+$/g, '')) : [];
                   setFieldValue(`questions.${index}.options`, options);
                 }}
               />
@@ -388,7 +388,7 @@ export default function TestEklePage() {
                         />
                       </div>
                       <div className="col-span-2">
-                        <label className="block text-sm font-medium mb-1">Parçalar</label>
+                        <label className="block text-sm font-medium mb-1">Parçalar (AxB/C)</label>
                         <div className="grid grid-cols-3 gap-4">
                           <div>
                             <Field
