@@ -367,23 +367,16 @@ export default function TestDuzenlePage({ params }: { params: { id: string } }) 
                 name={`questions.${index}.correctAnswer`}
                 as="textarea"
                 className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                placeholder="1&#10;2&#10;3&#10;4"
-                value={Array.isArray(values.questions[index].correctAnswer) ? values.questions[index].correctAnswer.join('\n') : ''}
+                placeholder="1,2,3,4"
+                value={Array.isArray(values.questions[index].correctAnswer) ? values.questions[index].correctAnswer.join(', ') : ''}
                 onChange={(e: any) => {
                   const inputValue = e.target.value;
-                  if (!inputValue.trim()) {
+                  if (!inputValue) {
                     setFieldValue(`questions.${index}.correctAnswer`, []);
                     return;
                   }
-                  const numbers = inputValue.split('\n')
-                    .map(num => num.trim())
-                    .filter(num => num !== '')
-                    .map(num => {
-                      const parsed = Number(num);
-                      return isNaN(parsed) ? '' : parsed;
-                    })
-                    .filter(num => num !== '');
-                  setFieldValue(`questions.${index}.correctAnswer`, numbers);
+                  const items = inputValue.split(',');
+                  setFieldValue(`questions.${index}.correctAnswer`, items);
                 }}
               />
             </div>

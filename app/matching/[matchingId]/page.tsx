@@ -156,8 +156,9 @@ export default function MatchingPage({
 
   if (!matching || !currentQuestion) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p>Eşleştirme bulunamadı.</p>
+      <div className="flex flex-1 items-center justify-center flex-col gap-2">
+        <Loader2 className="h-12 w-12 animate-spin text-green-500" />
+        <span>Yükleniyor...</span>
       </div>
     );
   }
