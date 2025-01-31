@@ -26,6 +26,7 @@ import { Search, Plus } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
 import { getQuestions } from "@/redux/actions/questionActions";
+import { CellAction } from "@/components/cell-action";
 
 export default function TestlerimPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -33,14 +34,9 @@ export default function TestlerimPage() {
   const dispatch = useDispatch<AppDispatch>();
   const { questions: tests, loading } = useSelector((state: RootState) => state.question);
 
-  console.log("tests", tests)
   useEffect(() => {
     dispatch(getQuestions());
   }, [dispatch]);
-
-  const handleRowClick = (id: string) => {
-    router.push(`/question/${id}`);
-  };
 
   const getAllTests = () => {
     if (!tests) return [];
@@ -71,7 +67,7 @@ export default function TestlerimPage() {
       <div className="flex items-center justify-between space-y-2">
         <h2 className="text-3xl font-bold tracking-tight">Testlerim</h2>
         <div className="flex items-center space-x-2">
-          <Link href="/create-test" passHref>
+          <Link href="/test-ekle" passHref>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
               Yeni Test
@@ -109,6 +105,7 @@ export default function TestlerimPage() {
                     <TableHead>Doğruluk Oranı</TableHead>
                     <TableHead>Tamamlanma Oranı</TableHead>
                     <TableHead>Oluşturulma Tarihi</TableHead>
+                    <TableHead>İşlemler</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -116,7 +113,6 @@ export default function TestlerimPage() {
                     <TableRow 
                       key={test._id}
                       className="cursor-pointer"
-                      onClick={() => handleRowClick(test._id)}
                     >
                       <TableCell>{test.title}</TableCell>
                       <TableCell>
@@ -126,9 +122,10 @@ export default function TestlerimPage() {
                       <TableCell>{test.accuracy}%</TableCell>
                       <TableCell>{test.completionRate}%</TableCell>
                       <TableCell>
-                        {test.createdAt && format(new Date(test.createdAt), "d MMMM yyyy", {
-                          locale: tr,
-                        })}
+                        {test.createdAt ? format(new Date(test.createdAt), 'dd MMMM yyyy', { locale: tr }) : '-'}
+                      </TableCell>
+                      <TableCell>
+                        <CellAction data={test} />
                       </TableCell>
                     </TableRow>
                   ))}

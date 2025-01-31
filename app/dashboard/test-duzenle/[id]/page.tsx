@@ -9,9 +9,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-
-// Test verilerini içe aktarıyoruz
-import { tests } from "../../page"
+import { useSelector } from "react-redux"
+import { RootState } from "@/redux/store"
 
 const formSchema = z.object({
   title: z.string().min(2, { message: "Başlık en az 2 karakter olmalıdır" }),
@@ -30,16 +29,27 @@ const formSchema = z.object({
 export default function TestDuzenlePage({ params }: { params: { id: string } }) {
   const [selectedCategory, setSelectedCategory] = useState("")
   
+  // Get tests from Redux state
+  const { questions: tests, loading } = useSelector((state: RootState) => state.question);
+
+  console.log("t1",tests)
   // ID'ye göre testi buluyoruz
-  const test = tests.find((t) => t.id === params.id)
+  const test = tests?.find((item) => {
+    if (item.exams && item.exams._id === params.id) return item.exams;
+    if (item.matching && item.matching._id === params.id) return item.matching;
+    if (item.placement && item.placement._id === params.id) return item.placement;
+    return false;
+  });
+
+  const testData = test?.exams || test?.matching || test?.placement;
 
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: test?.title || "",
-      category: test?.category || "",
-      description: test?.desc || "",
-      questions: test?.questions || [],
+      title: testData?.title || "",
+      category: testData?.category || "",
+      description: testData?.desc || "",
+      questions: testData?.questions || [],
     },
   })
 
@@ -49,10 +59,10 @@ export default function TestDuzenlePage({ params }: { params: { id: string } }) 
   })
 
   useEffect(() => {
-    if (test) {
-      setSelectedCategory(test.category)
+    if (testData) {
+      setSelectedCategory(testData.category)
     }
-  }, [test])
+  }, [testData])
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values)
@@ -265,7 +275,7 @@ export default function TestDuzenlePage({ params }: { params: { id: string } }) 
     }
   }
 
-  if (!test) {
+  if (!testData) {
     return <div>Test bulunamadı</div>
   }
 
