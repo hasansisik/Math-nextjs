@@ -21,6 +21,19 @@ import { getQuestions } from "@/redux/actions/questionActions";
 import { AppDispatch, RootState } from "@/redux/store";
 import { useDispatch, useSelector } from "react-redux";
 
+interface Exam {
+  _id: string;
+  // Add other exam properties as needed
+}
+
+interface Question {
+  exams?: Exam;
+  // Add other question properties as needed
+  question: string;
+  options: string[];
+  correctAnswer: string;
+}
+
 export default function ExamPage({
   params,
 }: {
@@ -76,7 +89,7 @@ export default function ExamPage({
   }, [timerActive]);
 
   const resolvedParams = use(params);
-  const exam = questions?.find((q: any) => q.exams?._id === resolvedParams.examId)?.exams;
+  const exam = questions?.find((q: Question) => q.exams?._id === resolvedParams.examId)?.exams;
 
   if (loading) {
     return <div>Loading...</div>;

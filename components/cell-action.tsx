@@ -17,7 +17,10 @@ import { deleteExam, deleteMatching, deleteFraction, deletePlacement, getQuestio
 import { toast } from '@/hooks/use-toast';
 
 interface CellActionProps {
-  data: any;
+  data: {
+    _id: string;
+    category: 'Çoktan Seçmeli' | 'Kesir' | 'Eşleştirme' | 'Sıralama';
+  };
 }
 
 export const CellAction: React.FC<CellActionProps> = ({ data }) => {
@@ -54,7 +57,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
         title: 'Başarılı!',
         description: 'Test başarıyla silindi.',
       });
-    } catch (error) {
+    } catch {
       toast({
         variant: "destructive",
         title: 'Hata!',

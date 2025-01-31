@@ -9,6 +9,28 @@ import CircularProgress from "@/components/ui/CircularProgress";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
 import { getQuestions } from "@/redux/actions/questionActions";
+import { Loader2 } from "lucide-react";
+
+interface Question {
+  _id: string;
+  title: string;
+  category: string;
+  accuracy: number;
+  completionRate: number;
+  questionsCount: number;
+  createdAt: string;
+  exams?: Question[];
+  matching?: Question[];
+  placement?: Question[];
+  fraction?: Question[];
+}
+
+interface ProcessedQuestions {
+  exams?: Question[];
+  matching?: Question[];
+  placement?: Question[];
+  fraction?: Question[];
+}
 
 export default function Home() {
   const [selectedFilter, setSelectedFilter] = useState("all");
@@ -26,19 +48,19 @@ export default function Home() {
     setSelectedFilter(filter);
   };
 
-  const processQuestions = (questions: any[]) => {
-    return questions.reduce((acc: any, item: any) => {
+  const processQuestions = (questions: Question[]): ProcessedQuestions => {
+    return questions.reduce((acc: ProcessedQuestions, item: Question) => {
       if (item.exams) {
-        acc.exams = [...(acc.exams || []), item.exams];
+        acc.exams = [...(acc.exams || []), item];
       }
       if (item.matching) {
-        acc.matching = [...(acc.matching || []), item.matching];
+        acc.matching = [...(acc.matching || []), item];
       }
       if (item.placement) {
-        acc.placement = [...(acc.placement || []), item.placement];
+        acc.placement = [...(acc.placement || []), item];
       }
       if (item.fraction) {
-        acc.fraction = [...(acc.fraction || []), item.fraction];
+        acc.fraction = [...(acc.fraction || []), item];
       }
       return acc;
     }, {});
@@ -49,8 +71,9 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <CircularProgress />
+      <div className="flex flex-1 items-center justify-center flex-col gap-2">
+        <Loader2 className="h-12 w-12 animate-spin text-green-500" />
+        <span>Yükleniyor...</span>
       </div>
     );
   }

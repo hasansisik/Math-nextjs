@@ -198,7 +198,6 @@ export default function MatchingPage({
   }
 
   function checkResults() {
-    const totalQuestions = currentQuestion?.question?.length || 0;
     let correct = 0;
     let incorrect = 0;
     let empty = 0;

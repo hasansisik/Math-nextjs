@@ -29,6 +29,17 @@ import { getQuestions } from "@/redux/actions/questionActions";
 import { AppDispatch, RootState } from "@/redux/store";
 import { useDispatch, useSelector } from "react-redux";
 
+interface Question {
+  placement?: {
+    _id: string;
+    questions: Array<{
+      correctAnswer: Array<string | number>;
+      title: string;
+      type: string;
+    }>;
+  };
+}
+
 function Draggable({
   id,
   children,
@@ -99,7 +110,7 @@ const MatchingPage = ({ params }: { params: Usable<{ placementId: string }> }) =
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
   const resolvedParams = use(params);
-  const placement = questions?.find((q: any) => q.placement?._id === resolvedParams.placementId)?.placement;
+  const placement = questions?.find((q: Question) => q.placement?._id === resolvedParams.placementId)?.placement;
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -113,7 +124,6 @@ const MatchingPage = ({ params }: { params: Usable<{ placementId: string }> }) =
     dispatch(getQuestions());
   }, [dispatch]);
 
-  // Items için useEffect
   useEffect(() => {
     if (placement) {
       const shuffledItems = [...placement.questions[currentQuestionIndex].correctAnswer]
@@ -124,7 +134,6 @@ const MatchingPage = ({ params }: { params: Usable<{ placementId: string }> }) =
     }
   }, [placement, currentQuestionIndex]);
 
-  // Timer için useEffect
   useEffect(() => {
     let interval: NodeJS.Timeout;
 
