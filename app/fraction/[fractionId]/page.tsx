@@ -1,12 +1,13 @@
 "use client";
 import { Usable } from "react";
-import fractionData from "@/fraction.json";
 import { AlarmClock, AlignVerticalJustifyCenter, X } from "lucide-react";
 import { useState, useEffect, use } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useRouter } from "next/navigation";
 import useSound from "use-sound";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 import {
   Dialog,
   DialogContent,
@@ -19,6 +20,12 @@ import {
 const FractionPage = ({ params }: { params: Usable<{ fractionId: string }> }) => {
   const router = useRouter();
   const unwrappedParams = use(params);
+  const { questions } = useSelector((state: RootState) => state.question);
+  
+  const fractionData = questions?.find((q: any) => 
+    q.fraction && q.fraction._id === unwrappedParams.fractionId
+  )?.fraction;
+
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showResults, setShowResults] = useState(false);
   const [matchResults, setMatchResults] = useState({
@@ -32,6 +39,12 @@ const FractionPage = ({ params }: { params: Usable<{ fractionId: string }> }) =>
   const [userAnswers, setUserAnswers] = useState<{ [key: string]: { numerator: string; denominator: string } }>({});
   const [playCorrectSound] = useSound("/drop.mp3");
   const [playWrongSound] = useSound("/pickup.mp3");
+
+  useEffect(() => {
+    if (!fractionData) {
+      router.push('/');
+    }
+  }, [fractionData, router]);
 
   // Timer effect
   useEffect(() => {
@@ -55,15 +68,15 @@ const FractionPage = ({ params }: { params: Usable<{ fractionId: string }> }) =>
       }, 1000);
     }
 
-    return () => clearInterval(interval);
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
   }, [timerActive]);
 
-  const match = fractionData.find((m) => m.id === unwrappedParams.fractionId);
-  
-  // Redirect if match is not found
-  if (!match) {
-    router.push('/');
-    return null;
+  if (!fractionData) {
+    return <div>Loading...</div>;
   }
 
   const handleAnswerChange = (index: number, part: string, value: string) => {
@@ -77,7 +90,7 @@ const FractionPage = ({ params }: { params: Usable<{ fractionId: string }> }) =>
     setUserAnswers(newAnswers);
 
     // Get correct answer
-    const answer = match.questions[currentQuestionIndex].question[index].answer;
+    const answer = fractionData.questions[currentQuestionIndex].question[index].answer;
     const [correctNumerator, correctDenominator] = answer.split('/');
     
     // Check if the current input matches the correct answer
@@ -91,7 +104,7 @@ const FractionPage = ({ params }: { params: Usable<{ fractionId: string }> }) =>
   };
 
   const getInputStyle = (index: number, part: "numerator" | "denominator") => {
-    const answer = match.questions[currentQuestionIndex].question[index].answer;
+    const answer = fractionData.questions[currentQuestionIndex].question[index].answer;
     const [correctNumerator, correctDenominator] = answer.split('/');
     const userAnswer = userAnswers[index]?.[part];
 
@@ -111,7 +124,7 @@ const FractionPage = ({ params }: { params: Usable<{ fractionId: string }> }) =>
     let correct = 0;
     let incorrect = 0;
 
-    match.questions.forEach((question) => {
+    fractionData.questions.forEach((question) => {
       question.question.forEach((q, index) => {
         const userAnswer = userAnswers[index];
         const [correctNumerator, correctDenominator] = q.answer.split('/');
@@ -126,7 +139,7 @@ const FractionPage = ({ params }: { params: Usable<{ fractionId: string }> }) =>
       });
     });
 
-    const totalQuestions = match.questions.reduce((acc, q) => acc + q.question.length, 0);
+    const totalQuestions = fractionData.questions.reduce((acc, q) => acc + q.question.length, 0);
     const totalPoints = (correct / totalQuestions) * 100;
     
     setMatchResults({
@@ -177,21 +190,21 @@ const FractionPage = ({ params }: { params: Usable<{ fractionId: string }> }) =>
           <div className="p-1 bg-primary rounded-sm">
             <AlignVerticalJustifyCenter color="white" />
           </div>
-          <p className="font-bold">{match.title}</p>
+          <p className="font-bold">{fractionData.title}</p>
           <p>
-            {currentQuestionIndex + 1} ile {match.questionsCount}
+            {currentQuestionIndex + 1} ile {fractionData.questions.length}
           </p>
         </div>
 
         <h2 className="pt-5 font-bold text-lg">
-          {match.questions[currentQuestionIndex].title}
+          {fractionData.questions[currentQuestionIndex].title}
         </h2>
         <p className="text-neutral-500">
           Sürükle bırak yaparak sorular ve cevaplarını eşleştiriniz.
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
-          {match.questions[currentQuestionIndex].question.map((q, index) => (
+          {fractionData.questions[currentQuestionIndex].question.map((q, index) => (
             <div key={index} className="bg-white p-6 rounded-lg border shadow-sm flex items-center justify-center h-[200px]">
               <div className="flex items-center justify-center gap-4">
                 <div className="flex items-center gap-1">
@@ -234,17 +247,17 @@ const FractionPage = ({ params }: { params: Usable<{ fractionId: string }> }) =>
           </Button>
           <Button
             onClick={
-              currentQuestionIndex === match.questions.length - 1
+              currentQuestionIndex === fractionData.questions.length - 1
                 ? handleSubmit
                 : () => setCurrentQuestionIndex((prev) => prev + 1)
             }
             variant={
-              currentQuestionIndex === match.questions.length - 1
+              currentQuestionIndex === fractionData.questions.length - 1
                 ? "destructive"
                 : "default"
             }
           >
-            {currentQuestionIndex === match.questions.length - 1
+            {currentQuestionIndex === fractionData.questions.length - 1
               ? "Sınavı Bitir"
               : "Sonraki Soru"}
           </Button>
@@ -252,7 +265,7 @@ const FractionPage = ({ params }: { params: Usable<{ fractionId: string }> }) =>
 
         <ScrollArea className="my-5">
           <div className="grid grid-cols-10 gap-2">
-            {match.questions.map((_, index) => (
+            {fractionData.questions.map((_, index) => (
               <Button
                 key={index}
                 variant="outline"
@@ -273,7 +286,7 @@ const FractionPage = ({ params }: { params: Usable<{ fractionId: string }> }) =>
           <div className="pt-4 space-y-2">
             <DialogDescription asChild>
               <div>
-                <div>Toplam Soru: 1</div>
+                <div>Toplam Soru: {fractionData.questions.length}</div>
                 <div className="text-green-600">
                   Doğru Sayısı: {matchResults.correct}
                 </div>

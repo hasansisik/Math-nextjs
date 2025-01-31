@@ -62,6 +62,11 @@ const getInitialValues = (type: string) => {
           title: "",
           question: [{
             mixedFraction: "",
+            parts: {
+              A: "",
+              B: "",
+              C: ""
+            },
             answer: ""
           }]
         }]
@@ -130,6 +135,26 @@ export default function TestEklePage() {
             type: q.direction === "Büyükten küçüğe doğru sıralayınız" ? ">" : "<",
             correctAnswer: Array.isArray(q.correctAnswer) ? q.correctAnswer.map(Number) : [],
             direction: q.direction
+          }))
+        };
+      } else if (selectedType === "fractions") {
+        formattedValues = {
+          title: values.title,
+          description: values.description,
+          accuracy: values.accuracy,
+          completionRate: values.completionRate,
+          questionsCount: values.questions.length,
+          questions: values.questions.map((q: any) => ({
+            title: q.title || "",
+            question: q.question.map((question: any) => ({
+              mixedFraction: question.mixedFraction || "",
+              parts: {
+                A: question.parts?.A || "",
+                B: question.parts?.B || "",
+                C: question.parts?.C || ""
+              },
+              answer: question.answer || ""
+            }))
           }))
         };
       } else {
@@ -332,10 +357,10 @@ export default function TestEklePage() {
               />
             </div>
             
-            <FieldArray name={`questions.${index}.fractions`}>
+            <FieldArray name={`questions.${index}.question`}>
               {({ push, remove }: any) => (
                 <div className="space-y-4">
-                  {values.questions[index].fractions.map((_: any, fractionIndex: number) => (
+                  {values.questions[index].question?.map((_: any, fractionIndex: number) => (
                     <div key={fractionIndex} className="grid gap-6 md:grid-cols-2 p-4 border rounded-lg relative">
                       <Button
                         type="button"
@@ -349,27 +374,57 @@ export default function TestEklePage() {
                       <div>
                         <label className="block text-sm font-medium mb-1">Kesir İfadesi {fractionIndex + 1}</label>
                         <Field
-                          name={`questions.${index}.fractions.${fractionIndex}.expression`}
+                          name={`questions.${index}.question.${fractionIndex}.mixedFraction`}
                           as={Input}
                           placeholder="Örn: 6x1/2"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium mb-1">Doğru Cevap {fractionIndex + 1}</label>
+                        <label className="block text-sm font-medium mb-1">Cevap</label>
                         <Field
-                          name={`questions.${index}.fractions.${fractionIndex}.answer`}
+                          name={`questions.${index}.question.${fractionIndex}.answer`}
                           as={Input}
-                          placeholder="Örn: 13/2"
+                          placeholder="Cevabı giriniz..."
                         />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm font-medium mb-1">Parçalar</label>
+                        <div className="grid grid-cols-3 gap-4">
+                          <div>
+                            <Field
+                              name={`questions.${index}.question.${fractionIndex}.parts.A`}
+                              as={Input}
+                              placeholder="A"
+                            />
+                          </div>
+                          <div>
+                            <Field
+                              name={`questions.${index}.question.${fractionIndex}.parts.B`}
+                              as={Input}
+                              placeholder="B"
+                            />
+                          </div>
+                          <div>
+                            <Field
+                              name={`questions.${index}.question.${fractionIndex}.parts.C`}
+                              as={Input}
+                              placeholder="C"
+                            />
+                          </div>
+                        </div>
                       </div>
                     </div>
                   ))}
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => push({ expression: "", answer: "" })}
+                    onClick={() => push({
+                      mixedFraction: "",
+                      parts: { A: "", B: "", C: "" },
+                      answer: ""
+                    })}
                   >
-                    Kesir Ekle
+                    Yeni Kesir Ekle
                   </Button>
                 </div>
               )}

@@ -13,7 +13,7 @@ import { Edit, EllipsisVertical, Trash } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { deleteExam, deleteMatching, deleteFraction, deletePlacement } from '@/redux/actions/questionActions';
+import { deleteExam, deleteMatching, deleteFraction, deletePlacement, getQuestions } from '@/redux/actions/questionActions';
 import { toast } from '@/hooks/use-toast';
 
 interface CellActionProps {
@@ -34,33 +34,34 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
         case 'Çoktan Seçmeli':
           await dispatch(deleteExam(data._id));
           break;
+        case 'Kesir':
+          await dispatch(deleteFraction(data._id));
+          break;
         case 'Eşleştirme':
           await dispatch(deleteMatching(data._id));
           break;
-        case 'Kesirler':
-          await dispatch(deleteFraction(data.id));
-          break;
         case 'Sıralama':
-          await dispatch(deletePlacement(data.id));
+          await dispatch(deletePlacement(data._id));
           break;
         default:
           throw new Error('Invalid category');
       }
       
-      router.refresh();
+      // Refresh the questions data after successful deletion
+      await dispatch(getQuestions());
+      setOpen(false);
       toast({
-        title: "Başarıyla silindi"
+        title: 'Başarılı!',
+        description: 'Test başarıyla silindi.',
       });
     } catch (error) {
       toast({
-        title: "Bir hata oluştu",
-        description: "Silme işlemi başarısız",
-        variant: "destructive"
+        variant: "destructive",
+        title: 'Hata!',
+        description: 'Bir şeyler yanlış gitti.',
       });
-      console.error('Silme işlemi başarısız:', error);
     } finally {
       setLoading(false);
-      setOpen(false);
     }
   };
 

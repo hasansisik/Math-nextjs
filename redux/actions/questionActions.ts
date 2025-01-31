@@ -155,6 +155,7 @@ export const deleteMatching = createAsyncThunk(
 export const createFraction = createAsyncThunk(
   "question/createFraction",
   async (payload: FractionPayload, thunkAPI) => {
+    console.log("payload2", payload)  
     try {
       const { data } = await axios.post(`${server}/question/fraction`, payload);
       return data.data;

@@ -30,7 +30,6 @@ import { CellAction } from "@/components/cell-action";
 
 export default function TestlerimPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
   const { questions: tests, loading } = useSelector((state: RootState) => state.question);
 
@@ -46,6 +45,7 @@ export default function TestlerimPage() {
       if (item.exams) allTests.push(item.exams);
       if (item.matching) allTests.push(item.matching);
       if (item.placement) allTests.push(item.placement);
+      if (item.fraction) allTests.push(item.fraction);
     });
     return allTests;
   };
