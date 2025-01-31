@@ -34,15 +34,11 @@ import { getQuestions } from "@/redux/actions/questionActions";
 import { AppDispatch, RootState } from "@/redux/store";
 import { useDispatch, useSelector } from "react-redux";
 
-function Draggable({
-  id,
-  children,
-}: {
-  id: string;
-  children: React.ReactNode;
-}) {
+// Draggable component outside the main component
+function Draggable({ id, children, disabled = false }: { id: string; children: React.ReactNode; disabled?: boolean }) {
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
     id: id,
+    disabled
   });
 
   const style = transform
@@ -52,35 +48,24 @@ function Draggable({
     : undefined;
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...listeners}
-      {...attributes}
-      className="cursor-move"
-    >
+    <div ref={setNodeRef} style={style} {...listeners} {...attributes}>
       {children}
     </div>
   );
 }
 
-function Droppable({
-  id,
-  children,
-}: {
-  id: string;
-  children: React.ReactNode;
-}) {
+// Droppable component outside the main component
+function Droppable({ id, children }: { id: string; children: React.ReactNode }) {
   const { isOver, setNodeRef } = useDroppable({
     id: id,
   });
 
+  const style = {
+    color: isOver ? 'green' : undefined,
+  };
+
   return (
-    <div
-      ref={setNodeRef}
-      className={`h-12 border-2 border-dashed rounded flex items-center justify-center min-w-[200px]
-        ${isOver ? "border-blue-500 bg-blue-50" : "border-gray-300"}`}
-    >
+    <div ref={setNodeRef} style={style} className="min-h-[60px] border-2 border-dashed border-gray-300 rounded-lg p-2">
       {children}
     </div>
   );
@@ -91,60 +76,67 @@ export default function MatchingPage({
 }: {
   params: Promise<{ matchingId: string }>;
 }) {
-  const { questions, loading } = useSelector((state: RootState) => state.question);
   const router = useRouter();
-  const resolvedParams = use(params);
-  
-  // Find the matching question based on _id
-  const matchingQuestion = questions?.find((q: any) => {
-    console.log('Comparing:', q.matching?._id, resolvedParams.matchingId);
-    return q.matching?._id.toString() === resolvedParams.matchingId;
-  });
-  
-  const matching = matchingQuestion?.matching;
-
-
+  const { questions, loading } = useSelector((state: RootState) => state.question);
   const dispatch = useDispatch<AppDispatch>();
-  const [showResults, setShowResults] = useState(false);
-  const [timer, setTimer] = useState({ minutes: 0, seconds: 0 });
-  const [timerActive, setTimerActive] = useState(true);
-  const [matches, setMatches] = useState<{ [key: string]: string }>({});
+  const resolvedParams = use(params);
+  const [userAnswers, setUserAnswers] = useState<{ [key: string]: string }>({});
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [matchResults, setMatchResults] = useState({
+  const [showResults, setShowResults] = useState(false);
+  const [matchingResults, setMatchingResults] = useState({
     correct: 0,
     incorrect: 0,
     empty: 0,
     totalPoints: 0,
   });
-  const [matchStatus, setMatchStatus] = useState<{ [key: string]: boolean }>({});
-  const [answers, setAnswers] = useState<string[]>([]);
+  const [timer, setTimer] = useState({ minutes: 0, seconds: 0 });
+  const [timerActive, setTimerActive] = useState(true);
 
-  const currentQuestion = matching?.questions?.[currentQuestionIndex];
+  const [playPickupSound] = useSound("/pickup.mp3");
+  const [playCorrectSound] = useSound("/drop.mp3");
+  const [playWrongSound] = useSound("/fail.mp3");
 
-  useEffect(() => {
-    if (currentQuestion) {
-      setAnswers([...currentQuestion.correctAnswer].sort(() => Math.random() - 0.5));
-    }
-  }, [currentQuestion]);
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor)
+  );
+
+  const matching = useMemo(() => {
+    if (!questions) return null;
+    return questions.find(
+      (item) => item.matching?._id === resolvedParams.matchingId
+    )?.matching;
+  }, [questions, resolvedParams.matchingId]);
+
+  const currentQuestion = useMemo(() => {
+    if (!matching?.questions) return null;
+    return matching.questions[currentQuestionIndex];
+  }, [matching, currentQuestionIndex]);
 
   useEffect(() => {
     dispatch(getQuestions());
   }, [dispatch]);
 
   useEffect(() => {
+    if (currentQuestion) {
+      setUserAnswers({});
+    }
+  }, [currentQuestion]);
+
+  useEffect(() => {
     let interval: NodeJS.Timeout;
     if (timerActive) {
       interval = setInterval(() => {
-        setTimer((prev) => {
-          const newSeconds = prev.seconds + 1;
+        setTimer((prevTimer) => {
+          const newSeconds = prevTimer.seconds + 1;
           if (newSeconds === 60) {
             return {
-              minutes: prev.minutes + 1,
+              minutes: prevTimer.minutes + 1,
               seconds: 0,
             };
           }
           return {
-            ...prev,
+            ...prevTimer,
             seconds: newSeconds,
           };
         });
@@ -159,29 +151,16 @@ export default function MatchingPage({
         <Loader2 className="h-12 w-12 animate-spin text-green-500" />
         <span>Yükleniyor...</span>
       </div>
-    );  }
+    );
+  }
 
-  if (!matching) {
+  if (!matching || !currentQuestion) {
     return (
-      <div className="flex flex-1 items-center justify-center flex-col gap-2">
-        <Loader2 className="h-12 w-12 animate-spin text-green-500" />
-        <span>Yükleniyor...</span>
+      <div className="flex items-center justify-center min-h-screen">
+        <p>Eşleştirme bulunamadı.</p>
       </div>
-    ); 
+    );
   }
-
-  if (!currentQuestion) {
-    return <div>No questions found in this matching test</div>;
-  }
-
-  // Hook tanımlamaları
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor)
-  );
-  const [playPickupSound] = useSound("/pickup.mp3");
-  const [playDropSound] = useSound("/drop.mp3");
-  const [playFailSound] = useSound("/fail.mp3");
 
   function handleDragStart() {
     playPickupSound();
@@ -201,7 +180,7 @@ export default function MatchingPage({
     const answerIndex = parseInt(answerId.toString());
     
     // Update matches state
-    setMatches(prev => ({
+    setUserAnswers(prev => ({
       ...prev,
       [dropZoneId]: answerId.toString()
     }));
@@ -210,16 +189,10 @@ export default function MatchingPage({
     const isCorrect = answerIndex === dropIndex;
     
     // Update match status
-    setMatchStatus(prev => ({
-      ...prev,
-      [dropZoneId]: isCorrect
-    }));
-
-    // Play appropriate sound
     if (isCorrect) {
-      playDropSound();
+      playCorrectSound();
     } else {
-      playFailSound();
+      playWrongSound();
     }
   }
 
@@ -232,8 +205,8 @@ export default function MatchingPage({
     // Count correct, incorrect, and empty matches
     currentQuestion?.question?.forEach((_, index) => {
       const dropZoneId = `drop-${index}`;
-      if (matches[dropZoneId]) {
-        const answerIndex = parseInt(matches[dropZoneId]);
+      if (userAnswers[dropZoneId]) {
+        const answerIndex = parseInt(userAnswers[dropZoneId]);
         if (index === answerIndex) {
           correct++;
         } else {
@@ -244,12 +217,12 @@ export default function MatchingPage({
       }
     });
 
-    // Her doğru 5 puan, her 3 yanlış 1 doğruyu götürür
+    // Her doğru 5 puan ve 3 yanlış 1 doğruyu götürür
     const canceledCorrects = Math.floor(incorrect / 3);
     const effectiveCorrects = Math.max(0, correct - canceledCorrects);
     const totalPoints = effectiveCorrects * 5;
 
-    setMatchResults({
+    setMatchingResults({
       correct,
       incorrect,
       empty,
@@ -359,13 +332,13 @@ export default function MatchingPage({
                       {renderQuestionContent(question)}
                     </div>
                     <Droppable id={`drop-${qIndex}`}>
-                      {matches[`drop-${qIndex}`] && (
+                      {userAnswers[`drop-${qIndex}`] && (
                         <div className={`p-2 rounded w-full text-center ${
-                          matchStatus[`drop-${qIndex}`]
+                          parseInt(userAnswers[`drop-${qIndex}`]) === qIndex
                             ? 'bg-green-100'
                             : 'bg-red-100'
                         }`}>
-                          {currentQuestion?.correctAnswer[parseInt(matches[`drop-${qIndex}`])]}
+                          {currentQuestion?.correctAnswer[parseInt(userAnswers[`drop-${qIndex}`])]}
                         </div>
                       )}
                     </Droppable>
@@ -376,11 +349,11 @@ export default function MatchingPage({
 
             <div className="flex flex-wrap gap-2 mt-4 sticky bottom-4 bg-white p-4 border rounded shadow-lg">
               {currentQuestion?.correctAnswer.map((answer, index) => (
-                <Draggable key={index} id={index.toString()}>
+                <Draggable key={index} id={index.toString()} disabled={Object.values(userAnswers).includes(index.toString())}>
                   <div
                     className={`flex items-center justify-center min-w-[200px] h-12 rounded
                       ${
-                        Object.values(matches).includes(index.toString())
+                        Object.values(userAnswers).includes(index.toString())
                           ? "opacity-50 bg-gray-100"
                           : "bg-blue-100"
                       }
@@ -453,19 +426,19 @@ export default function MatchingPage({
                 </div>
                 <div className="flex justify-between items-center py-2 border-b">
                   <span>Doğru Sayısı:</span>
-                  <span className="font-medium text-green-600">{matchResults.correct}</span>
+                  <span className="font-medium text-green-600">{matchingResults.correct}</span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b">
                   <span>Yanlış Sayısı:</span>
-                  <span className="font-medium text-red-600">{matchResults.incorrect}</span>
+                  <span className="font-medium text-red-600">{matchingResults.incorrect}</span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b">
                   <span>Boş Sayısı:</span>
-                  <span className="font-medium text-gray-600">{matchResults.empty}</span>
+                  <span className="font-medium text-gray-600">{matchingResults.empty}</span>
                 </div>
                 <div className="flex justify-between items-center py-2 bg-primary/10 px-4 rounded-lg">
                   <span className="font-bold">Toplam Puan:</span>
-                  <span className="font-bold text-primary">{matchResults.totalPoints}</span>
+                  <span className="font-bold text-primary">{matchingResults.totalPoints}</span>
                 </div>
               </div>
             </DialogDescription>

@@ -395,114 +395,118 @@ export default function TestDuzenlePage({ params }: { params: { id: string } }) 
     }
   }
 
-  if (!testData) {
-    return <div>Loading...</div>
+  const renderContent = () => {
+    if (!testData) {
+      return <div className="container mx-auto py-10 text-center">Yükleniyor...</div>
+    }
+
+    return (
+      <div className="container mx-auto py-10">
+        <Formik
+          initialValues={{
+            title: testData.title || "",
+            description: testData.description || "",
+            accuracy: testData.accuracy || 0,
+            completionRate: testData.completionRate || 0,
+            questions: testData.questions || []
+          }}
+          onSubmit={handleSubmit}
+        >
+          {({ values, setFieldValue }) => (
+            <Form className="space-y-8">
+              <div className="grid gap-6">
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium">Başlık</label>
+                  <Field name="title" as={Input} placeholder="Test başlığını giriniz..." />
+                </div>
+
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium">Açıklama</label>
+                  <Field
+                    name="description"
+                    as="textarea"
+                    className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    placeholder="Test açıklamasını giriniz..."
+                  />
+                </div>
+              </div>
+
+              <div>
+                <h2 className="text-xl font-bold mb-4">Sorular</h2>
+                <FieldArray name="questions">
+                  {({ push, remove }: any) => (
+                    <div className="space-y-4">
+                      {values.questions.map((_, index) => (
+                        <Card key={index}>
+                          <CardHeader className="relative">
+                            <div className="absolute right-6 top-4">
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="icon"
+                                onClick={() => remove(index)}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                            <CardTitle>Soru {index + 1}</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            {renderQuestionFields(index, { values, setFieldValue })}
+                          </CardContent>
+                        </Card>
+                      ))}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          if (selectedType === "fractions") {
+                            push({
+                              title: "",
+                              question: [{
+                                mixedFraction: "",
+                                parts: { A: "", B: "", C: "" },
+                                answer: ""
+                              }]
+                            })
+                          } else if (selectedType === "matchings") {
+                            push({
+                              title: "",
+                              question: [],
+                              correctAnswer: []
+                            })
+                          } else if (selectedType === "placements") {
+                            push({
+                              title: "",
+                              type: ">",
+                              correctAnswer: [],
+                              direction: "Büyükten küçüğe doğru sıralayınız"
+                            })
+                          } else {
+                            push({
+                              question: "",
+                              options: [],
+                              correctAnswer: ""
+                            })
+                          }
+                        }}
+                      >
+                        Yeni Soru Ekle
+                      </Button>
+                    </div>
+                  )}
+                </FieldArray>
+              </div>
+
+              <Button type="submit">
+                Güncelle
+              </Button>
+            </Form>
+          )}
+        </Formik>
+      </div>
+    )
   }
 
-  return (
-    <div className="container mx-auto py-10">
-      <Formik
-        initialValues={{
-          title: testData.title || "",
-          description: testData.description || "",
-          accuracy: testData.accuracy || 0,
-          completionRate: testData.completionRate || 0,
-          questions: testData.questions || []
-        }}
-        onSubmit={handleSubmit}
-      >
-        {({ values, setFieldValue }) => (
-          <Form className="space-y-8">
-            <div className="grid gap-6">
-              <div className="grid gap-2">
-                <label className="text-sm font-medium">Başlık</label>
-                <Field name="title" as={Input} placeholder="Test başlığını giriniz..." />
-              </div>
-
-              <div className="grid gap-2">
-                <label className="text-sm font-medium">Açıklama</label>
-                <Field
-                  name="description"
-                  as="textarea"
-                  className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                  placeholder="Test açıklamasını giriniz..."
-                />
-              </div>
-            </div>
-
-            <div>
-              <h2 className="text-xl font-bold mb-4">Sorular</h2>
-              <FieldArray name="questions">
-                {({ push, remove }: any) => (
-                  <div className="space-y-4">
-                    {values.questions.map((_, index) => (
-                      <Card key={index}>
-                        <CardHeader className="relative">
-                          <div className="absolute right-6 top-4">
-                            <Button
-                              type="button"
-                              variant="destructive"
-                              size="icon"
-                              onClick={() => remove(index)}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
-                          <CardTitle>Soru {index + 1}</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          {renderQuestionFields(index, { values, setFieldValue })}
-                        </CardContent>
-                      </Card>
-                    ))}
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => {
-                        if (selectedType === "fractions") {
-                          push({
-                            title: "",
-                            question: [{
-                              mixedFraction: "",
-                              parts: { A: "", B: "", C: "" },
-                              answer: ""
-                            }]
-                          })
-                        } else if (selectedType === "matchings") {
-                          push({
-                            title: "",
-                            question: [],
-                            correctAnswer: []
-                          })
-                        } else if (selectedType === "placements") {
-                          push({
-                            title: "",
-                            type: ">",
-                            correctAnswer: [],
-                            direction: "Büyükten küçüğe doğru sıralayınız"
-                          })
-                        } else {
-                          push({
-                            question: "",
-                            options: [],
-                            correctAnswer: ""
-                          })
-                        }
-                      }}
-                    >
-                      Yeni Soru Ekle
-                    </Button>
-                  </div>
-                )}
-              </FieldArray>
-            </div>
-
-            <Button type="submit">
-              Güncelle
-            </Button>
-          </Form>
-        )}
-      </Formik>
-    </div>
-  )
+  return renderContent()
 }
