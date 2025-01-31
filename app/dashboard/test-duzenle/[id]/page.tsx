@@ -312,10 +312,10 @@ export default function TestDuzenlePage({ params }: { params: { id: string } }) 
                 name={`questions.${index}.question`}
                 as="textarea"
                 className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                placeholder="İfade 1&#10;İfade 2&#10;İfade 3&#10;İfade 4"
+                placeholder="İfade 1, İfade 2, İfade 3, İfade 4"
                 onChange={(e: any) => {
-                  const values = e.target.value ? e.target.value.split('\n') : []
-                  setFieldValue(`questions.${index}.question`, values)
+                  const values = e.target.value.split(",").map(item => item.trim());
+                  setFieldValue(`questions.${index}.question`, values);
                 }}
               />
             </div>
@@ -325,10 +325,10 @@ export default function TestDuzenlePage({ params }: { params: { id: string } }) 
                 name={`questions.${index}.correctAnswer`}
                 as="textarea"
                 className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                placeholder="Cevap 1&#10;Cevap 2&#10;Cevap 3&#10;Cevap 4"
+                placeholder="Cevap 1, Cevap 2, Cevap 3, Cevap 4"
                 onChange={(e: any) => {
-                  const values = e.target.value ? e.target.value.split('\n') : []
-                  setFieldValue(`questions.${index}.correctAnswer`, values)
+                  const values = e.target.value.split(",").map(item => item.trim());
+                  setFieldValue(`questions.${index}.correctAnswer`, values);
                 }}
               />
             </div>
@@ -368,7 +368,7 @@ export default function TestDuzenlePage({ params }: { params: { id: string } }) 
                 as="textarea"
                 className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 placeholder="1,2,3,4"
-                value={Array.isArray(values.questions[index].correctAnswer) ? values.questions[index].correctAnswer.join(', ') : ''}
+                value={Array.isArray(values.questions[index].correctAnswer) ? values.questions[index].correctAnswer.join(',') : ''}
                 onChange={(e: any) => {
                   const inputValue = e.target.value;
                   if (!inputValue) {

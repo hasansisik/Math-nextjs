@@ -23,7 +23,7 @@ import {
 const data = {
   user: {
     name: "Admin",
-    email: "m@example.com",
+    email: "etkinmatematik@gmail.com",
     avatar: "/avatars/shadcn.jpg",
   },
   teams: [

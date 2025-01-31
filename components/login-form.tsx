@@ -27,9 +27,9 @@ export function LoginForm({
         email,
         exp: new Date().getTime() + 24 * 60 * 60 * 1000 // 24 hours from now
       }
-      console.log(token)
-      // Store token in localStorage
-      localStorage.setItem("auth_token", JSON.stringify(token))
+      
+      // Store token in cookie
+      document.cookie = `auth_token=${JSON.stringify(token)}; path=/; max-age=${60 * 60 * 24}; SameSite=Strict`
       
       toast.success("Giriş başarılı!")
       router.push("/dashboard")
@@ -54,7 +54,7 @@ export function LoginForm({
             type="email" 
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="m@example.com" 
+            placeholder="etkinmatematik@gmail.com" 
             required 
           />
         </div>

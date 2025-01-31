@@ -224,6 +224,14 @@ export default function TestEklePage() {
     if (selectedType === "fractions") {
       return (
         <div>
+           <div className="col-span-2">
+              <label className="block text-sm font-medium mb-1">Soru Başlığı</label>
+              <Field
+                name={`questions.${index}.title`}
+                as={Input}
+                placeholder="Örnek: 1) Aşağıdaki verilen işlemlerini sonuçları ile eşleştiriniz"
+              />
+            </div>
           <FieldArray name={`questions.${index}.question`}>
             {({ push: pushQuestion, remove: removeQuestion }: any) => (
               <div className="space-y-4 mt-4">
@@ -536,17 +544,6 @@ export default function TestEklePage() {
                                   Soruyu Sil
                                 </Button>
                               )}
-                            </div>
-
-                            <div className="grid gap-6 md:grid-cols-2 mb-4">
-                              <div className="col-span-2">
-                                <label className="block text-sm font-medium mb-1">Soru Başlığı</label>
-                                <Field
-                                  name={`questions.${index}.title`}
-                                  as={Input}
-                                  placeholder="Soru başlığını giriniz..."
-                                />
-                              </div>
                             </div>
 
                             {renderQuestionFields(index, { values, setFieldValue })}

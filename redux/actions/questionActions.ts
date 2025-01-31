@@ -131,6 +131,7 @@ export const updateMatching = createAsyncThunk(
   "question/updateMatching",
   async ({ id, payload }: { id: string; payload: MatchingPayload }, thunkAPI) => {
     try {
+      console.log("payload2", payload)
       const { data } = await axios.put(`${server}/question/matching/${id}`, payload);
       return data.data;
     } catch (error: any) {
