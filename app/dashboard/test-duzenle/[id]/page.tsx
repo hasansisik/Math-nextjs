@@ -11,33 +11,29 @@ import { Formik, Field, FieldArray, Form } from 'formik'
 import { X } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { updateExam, updateMatching, updatePlacement, updateFraction } from "@/redux/actions/questionActions"
+import { usePathname } from "next/navigation"
 
-const questionTypes = [
-  { value: "Çoktan Seçmeli", label: "Çoktan Seçmeli Test", type: "exams" },
-  { value: "Eşleştirme", label: "Eşleştirme Soruları", type: "matchings" },
-  { value: "Sıralama", label: "Sıralama Soruları", type: "placements" },
-  { value: "Kesir", label: "Kesir Soruları", type: "fractions" },
-]
-
-export default function TestDuzenlePage({ params }: { params: { id: string } }) {
+export default function TestDuzenlePage() {
   const [selectedCategory, setSelectedCategory] = useState("")
   const [selectedType, setSelectedType] = useState("")
   const { questions: tests } = useSelector((state: RootState) => state.question)
   const dispatch = useDispatch()
   const { toast } = useToast()
-  const resolvedParams = use(params)
+  const pathname = usePathname()
+  const id = pathname.split('/test-duzenle/')[1]
+  console.log("id1",id)
 
   const test = tests?.find((item) => {
-    if (item.exams && item.exams._id === resolvedParams.id) {
+    if (item.exams && item.exams._id === id) {
       return item.exams;
     }
-    if (item.matching && item.matching._id === resolvedParams.id) {
+    if (item.matching && item.matching._id === id) {
       return item.matching;
     }
-    if (item.placement && item.placement._id === resolvedParams.id) {
+    if (item.placement && item.placement._id === id) {
       return item.placement;
     }
-    if (item.fraction && item.fraction._id === resolvedParams.id) {
+    if (item.fraction && item.fraction._id === id) {
       return item.fraction;
     }
     return false;
@@ -134,16 +130,16 @@ export default function TestDuzenlePage({ params }: { params: { id: string } }) 
       let actionResult
       switch (selectedType) {
         case "exams":
-          actionResult = await dispatch(updateExam({ id: resolvedParams.id, payload: formattedValues }))
+          actionResult = await dispatch(updateExam({ id, payload: formattedValues }))
           break
         case "matchings":
-          actionResult = await dispatch(updateMatching({ id: resolvedParams.id, payload: formattedValues }))
+          actionResult = await dispatch(updateMatching({ id, payload: formattedValues }))
           break
         case "placements":
-          actionResult = await dispatch(updatePlacement({ id: resolvedParams.id, payload: formattedValues }))
+          actionResult = await dispatch(updatePlacement({ id, payload: formattedValues }))
           break
         case "fractions":
-          actionResult = await dispatch(updateFraction({ id: resolvedParams.id, payload: formattedValues }))
+          actionResult = await dispatch(updateFraction({ id, payload: formattedValues }))
           break
         default:
           console.error("Unknown type:", selectedType)

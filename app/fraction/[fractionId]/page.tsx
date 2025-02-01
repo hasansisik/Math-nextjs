@@ -4,7 +4,7 @@ import { AlarmClock, AlignVerticalJustifyCenter, X,Loader2 } from "lucide-react"
 import { useState, useEffect, use } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import useSound from "use-sound";
 import {
   Dialog,
@@ -18,14 +18,15 @@ import { getQuestions } from "@/redux/actions/questionActions";
 import { AppDispatch, RootState } from "@/redux/store";
 import { useDispatch, useSelector } from "react-redux";
 
-const FractionPage = ({ params }: { params: Usable<{ fractionId: string }> }) => {
+const FractionPage = () => {
   const router = useRouter();
-  const unwrappedParams = use(params);
+  const pathname = usePathname();
+  const fractionId = pathname.split('/fraction/')[1];
   const { questions } = useSelector((state: RootState) => state.question);
   const dispatch = useDispatch<AppDispatch>();
 
   const fractionData = questions?.find((q: any) => 
-    q.fraction && q.fraction._id === unwrappedParams.fractionId
+    q.fraction && q.fraction._id === fractionId
   )?.fraction;
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);

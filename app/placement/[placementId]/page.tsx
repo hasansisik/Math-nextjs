@@ -16,7 +16,7 @@ import { useState, useEffect } from "react";
 import useSound from "use-sound";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import {
   Dialog,
   DialogContent,
@@ -81,9 +81,11 @@ function Droppable({
   );
 }
 
-const MatchingPage = ({ params }: { params: Usable<{ placementId: string }> }) => {
-  const { questions, loading } = useSelector((state: RootState) => state.question);
+const MatchingPage = () => {
   const router = useRouter();
+  const pathname = usePathname();
+  const placementId = pathname.split('/placement/')[1];
+  const { questions, loading } = useSelector((state: RootState) => state.question);
   const dispatch = useDispatch<AppDispatch>();
   const [showResults, setShowResults] = useState(false);
   const [timer, setTimer] = useState({ minutes: 0, seconds: 0 });
@@ -98,8 +100,7 @@ const MatchingPage = ({ params }: { params: Usable<{ placementId: string }> }) =
   const [droppedItems, setDroppedItems] = useState<{ [key: string]: string }>({});
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
-  const resolvedParams = use(params);
-  const placement = questions?.find((q: any) => q.placement?._id === resolvedParams.placementId)?.placement;
+  const placement = questions?.find((q: any) => q.placement?._id === placementId)?.placement;
 
   const sensors = useSensors(
     useSensor(PointerSensor),

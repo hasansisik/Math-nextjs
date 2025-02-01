@@ -15,18 +15,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { AlarmClock, BookOpenText, X, Loader2 } from "lucide-react";
 import { getQuestions } from "@/redux/actions/questionActions";
 import { AppDispatch, RootState } from "@/redux/store";
 import { useDispatch, useSelector } from "react-redux";
 
-export default function ExamPage({
-  params,
-}: {
-  params: Promise<{ examId: string }>;
-}) {
+export default function ExamPage() {
   const router = useRouter();
+  const pathname = usePathname();
+  const examId = pathname.split('/exam/')[1];
   const { questions, loading } = useSelector((state: RootState) => state.question);
   const dispatch = useDispatch<AppDispatch>();
   const [userAnswers, setUserAnswers] = useState<{ [key: string]: string }>({});
@@ -75,8 +73,9 @@ export default function ExamPage({
     return () => clearInterval(interval);
   }, [timerActive]);
 
-  const resolvedParams = use(params);
-  const exam = questions?.find((q: any) => q.exams?._id === resolvedParams.examId)?.exams;
+  const examData = questions?.find((q: any) => 
+    q.exams && q.exams._id === examId
+  )?.exams;
 
   if (loading) {
     return (
@@ -86,7 +85,7 @@ export default function ExamPage({
       </div>
     );}
 
-  if (!exam) {
+  if (!examData) {
     return (
       <div className="flex flex-1 items-center justify-center flex-col gap-2">
         <Loader2 className="h-12 w-12 animate-spin text-green-500" />
@@ -101,7 +100,7 @@ export default function ExamPage({
     let incorrectCount = 0;
     let emptyCount = 0;
 
-    exam.questions.forEach((question, index) => {
+    examData.questions.forEach((question, index) => {
       if (userAnswers[index] === question.correctAnswer) {
         correctCount++;
       } else if (userAnswers[index]) {
@@ -133,7 +132,7 @@ export default function ExamPage({
   };
 
   const handleNext = () => {
-    if (currentQuestionIndex < exam.questions.length - 1) {
+    if (currentQuestionIndex < examData.questions.length - 1) {
       setCurrentQuestionIndex((prev) => prev + 1);
     }
   };
@@ -146,7 +145,7 @@ export default function ExamPage({
 
   const getButtonVariant = (index: number) => {
     const currentAnswer = userAnswers[index];
-    const correctAnswer = exam.questions[index].correctAnswer;
+    const correctAnswer = examData.questions[index].correctAnswer;
 
     if (!currentAnswer) {
       // Henüz cevaplanmamış soru
@@ -184,7 +183,7 @@ export default function ExamPage({
   };
 
   const handleAnswerChange = (value: string) => {
-    const isCorrect = value === exam.questions[currentQuestionIndex].correctAnswer;
+    const isCorrect = value === examData.questions[currentQuestionIndex].correctAnswer;
     
     if (isCorrect) {
       playCorrectSound();
@@ -198,7 +197,7 @@ export default function ExamPage({
     }));
   };
 
-  const currentQuestion = exam.questions[currentQuestionIndex];
+  const currentQuestion = examData.questions[currentQuestionIndex];
 
   return (
     <div className="flex flex-col m-5">
@@ -234,7 +233,7 @@ export default function ExamPage({
             </div>
             <p className="font-bold">Çoktan Seçmeli</p>
             <p>
-              {currentQuestionIndex + 1} ile {exam.questions.length}
+              {currentQuestionIndex + 1} ile {examData.questions.length}
             </p>
         </div>
         <h2 className="pt-5 font-bold text-lg">{renderQuestionContent(currentQuestion.question)}</h2>
@@ -277,24 +276,24 @@ export default function ExamPage({
           </Button>
           <Button
             onClick={
-              currentQuestionIndex === exam.questions.length - 1
+              currentQuestionIndex === examData.questions.length - 1
                 ? handleSubmit
                 : handleNext
             }
             variant={
-              currentQuestionIndex === exam.questions.length - 1
+              currentQuestionIndex === examData.questions.length - 1
                 ? "destructive"
                 : "default"
             }
           >
-            {currentQuestionIndex === exam.questions.length - 1
+            {currentQuestionIndex === examData.questions.length - 1
               ? "Sınavı Bitir"
               : "Sonraki Soru"}
           </Button>
         </div>
         <ScrollArea className="my-5">
           <div className="grid grid-cols-10 gap-2">
-            {exam.questions.map((_, index) => (
+            {examData.questions.map((_, index) => (
               <Button
                 key={index}
                 variant={getButtonVariant(index)}
@@ -320,7 +319,7 @@ export default function ExamPage({
               <div className="space-y-3">
                 <div className="flex justify-between items-center py-2 border-b">
                   <span>Toplam Soru:</span>
-                  <span className="font-medium">{exam.questions.length}</span>
+                  <span className="font-medium">{examData.questions.length}</span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b">
                   <span>Doğru Sayısı:</span>

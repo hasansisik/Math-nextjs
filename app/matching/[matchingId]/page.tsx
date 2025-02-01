@@ -22,6 +22,7 @@ import useSound from "use-sound";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useRouter } from 'next/navigation';
+import { usePathname } from "next/navigation";
 import {
   Dialog,
   DialogContent,
@@ -71,15 +72,12 @@ function Droppable({ id, children }: { id: string; children: React.ReactNode }) 
   );
 }
 
-export default function MatchingPage({
-  params,
-}: {
-  params: Promise<{ matchingId: string }>;
-}) {
+export default function MatchingPage() {
   const router = useRouter();
+  const pathname = usePathname();
+  const matchingId = pathname.split('/matching/')[1];
   const { questions, loading } = useSelector((state: RootState) => state.question);
   const dispatch = useDispatch<AppDispatch>();
-  const resolvedParams = use(params);
   const [userAnswers, setUserAnswers] = useState<{ [key: string]: string }>({});
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showResults, setShowResults] = useState(false);
@@ -101,17 +99,17 @@ export default function MatchingPage({
     useSensor(KeyboardSensor)
   );
 
-  const matching = useMemo(() => {
+  const matchingData = useMemo(() => {
     if (!questions) return null;
     return questions.find(
-      (item) => item.matching?._id === resolvedParams.matchingId
+      (item) => item.matching?._id === matchingId
     )?.matching;
-  }, [questions, resolvedParams.matchingId]);
+  }, [questions, matchingId]);
 
   const currentQuestion = useMemo(() => {
-    if (!matching?.questions) return null;
-    return matching.questions[currentQuestionIndex];
-  }, [matching, currentQuestionIndex]);
+    if (!matchingData?.questions) return null;
+    return matchingData.questions[currentQuestionIndex];
+  }, [matchingData, currentQuestionIndex]);
 
   useEffect(() => {
     dispatch(getQuestions());
@@ -154,7 +152,7 @@ export default function MatchingPage({
     );
   }
 
-  if (!matching || !currentQuestion) {
+  if (!matchingData || !currentQuestion) {
     return (
       <div className="flex flex-1 items-center justify-center flex-col gap-2">
         <Loader2 className="h-12 w-12 animate-spin text-green-500" />
@@ -239,7 +237,7 @@ export default function MatchingPage({
   };
 
   const handleNext = () => {
-    if (currentQuestionIndex < matching.questions.length - 1) {
+    if (currentQuestionIndex < matchingData.questions.length - 1) {
       setCurrentQuestionIndex((prev) => prev + 1);
     }
   };
@@ -309,11 +307,11 @@ export default function MatchingPage({
           <div className="p-1 bg-primary rounded-sm">
             <GalleryVerticalEnd color="white" />
           </div>
-          <p className="font-bold">{matching.title}</p>
-          <p>{currentQuestionIndex + 1} ile {matching.questions.length}</p>
+          <p className="font-bold">{matchingData.title}</p>
+          <p>{currentQuestionIndex + 1} ile {matchingData.questions.length}</p>
         </div>
 
-        <h2 className="pt-5 font-bold text-lg">{matching.questions[currentQuestionIndex].title}</h2>
+        <h2 className="pt-5 font-bold text-lg">{matchingData.questions[currentQuestionIndex].title}</h2>
         <p className="text-neutral-500">
           Sürükle bırak yaparak sorular ve cevaplarını eşleştiriniz.
         </p>
@@ -377,17 +375,17 @@ export default function MatchingPage({
           </Button>
           <Button
             onClick={
-              currentQuestionIndex === matching.questions.length - 1
+              currentQuestionIndex === matchingData.questions.length - 1
                 ? handleSubmit
                 : handleNext
             }
             variant={
-              currentQuestionIndex === matching.questions.length - 1
+              currentQuestionIndex === matchingData.questions.length - 1
                 ? "destructive"
                 : "default"
             }
           >
-            {currentQuestionIndex === matching.questions.length - 1
+            {currentQuestionIndex === matchingData.questions.length - 1
               ? "Sınavı Bitir"
               : "Sonraki Soru"}
           </Button>
@@ -395,7 +393,7 @@ export default function MatchingPage({
 
         <ScrollArea className="my-5">
           <div className="grid grid-cols-10 gap-2">
-            {matching.questions.map((_, index) => (
+            {matchingData.questions.map((_, index) => (
               <Button
                 key={index}
                 variant="outline"
