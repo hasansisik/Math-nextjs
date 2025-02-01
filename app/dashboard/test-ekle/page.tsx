@@ -8,63 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useDispatch } from "react-redux"
 import { createExam, createMatching, createPlacement, createFraction } from "@/redux/actions/questionActions"
 import { useToast } from "@/hooks/use-toast"
-import { Formik, Form, Field, FieldArray, FormikHelpers } from 'formik'
+import { Formik, Form, Field, FieldArray } from 'formik'
 import { X } from "lucide-react"
-
-interface BaseQuestion {
-  title?: string;
-}
-
-interface ExamQuestion extends BaseQuestion {
-  question: string;
-  options: string[];
-  correctAnswer: string;
-}
-
-interface MatchingQuestion extends BaseQuestion {
-  question: string[];
-  correctAnswer: string[];
-}
-
-interface PlacementQuestion extends BaseQuestion {
-  type: ">" | "<";
-  correctAnswer: number[];
-  direction: "Büyükten küçüğe doğru sıralayınız" | "Küçükten büyüğe doğru sıralayınız";
-}
-
-interface FractionParts {
-  A: string;
-  B: string;
-  C: string;
-}
-
-interface FractionQuestionItem {
-  mixedFraction: string;
-  parts: FractionParts;
-  answer: string;
-}
-
-interface FractionQuestion extends BaseQuestion {
-  question: FractionQuestionItem[];
-}
-
-interface FormValues {
-  title: string;
-  description: string;
-  accuracy: number;
-  completionRate: number;
-  questions: ExamQuestion[] | MatchingQuestion[] | PlacementQuestion[] | FractionQuestion[];
-}
-
-interface ChangeEvent extends React.ChangeEvent<HTMLTextAreaElement> {
-  target: HTMLTextAreaElement;
-}
-
-interface FormikProps {
-  values: FormValues;
-  setFieldValue: (field: string, value: any) => void;
-  resetForm: () => void;
-}
 
 const questionTypes = [
   { value: "Çoktan Seçmeli", label: "Çoktan Seçmeli Test",type:"exams" },
@@ -148,7 +93,7 @@ export default function TestEklePage() {
   const dispatch = useDispatch()
   const { toast } = useToast()
 
-  const handleSubmit = async (values: FormValues, { resetForm }: FormikHelpers<FormValues>) => {
+  const handleSubmit = async (values: any, { resetForm }: any) => {
     console.log("handleSubmit çalıştı", values);
     console.log("selectedCategory:", selectedCategory);
     console.log("selectedType:", selectedType);
@@ -172,7 +117,7 @@ export default function TestEklePage() {
           accuracy: values.accuracy,
           completionRate: values.completionRate,
           questionsCount: values.questions.length,
-          questions: values.questions.map((q: MatchingQuestion) => ({
+          questions: values.questions.map((q: any) => ({
             title: q.title,
             question: Array.isArray(q.question) ? q.question : [],
             correctAnswer: Array.isArray(q.correctAnswer) ? q.correctAnswer : []
@@ -186,7 +131,7 @@ export default function TestEklePage() {
           completionRate: values.completionRate,
           category: "Sıralama",
           questionsCount: values.questions.length,
-          questions: values.questions.map((q: PlacementQuestion) => ({
+          questions: values.questions.map((q: any) => ({
             title: q.title,
             type: q.direction === "Büyükten küçüğe doğru sıralayınız" ? ">" : "<",
             correctAnswer: Array.isArray(q.correctAnswer) ? q.correctAnswer.map(Number) : [],
@@ -200,9 +145,9 @@ export default function TestEklePage() {
           accuracy: values.accuracy,
           completionRate: values.completionRate,
           questionsCount: values.questions.length,
-          questions: values.questions.map((q: FractionQuestion) => ({
+          questions: values.questions.map((q: any) => ({
             title: q.title || "",
-            question: q.question.map((question: FractionQuestionItem) => ({
+            question: q.question.map((question: any) => ({
               mixedFraction: question.mixedFraction || "",
               parts: {
                 A: question.parts?.A || "",
@@ -220,7 +165,7 @@ export default function TestEklePage() {
           accuracy: values.accuracy,
           completionRate: values.completionRate,
           questionsCount: values.questions.length,
-          questions: values.questions.map((q: ExamQuestion) => ({
+          questions: values.questions.map((q: any) => ({
             question: q.question || "",
             options: Array.isArray(q.options) ? q.options : [],
             correctAnswer: q.correctAnswer || ""
@@ -383,7 +328,7 @@ export default function TestEklePage() {
                 as="textarea"
                 className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 placeholder="Seçenek 1,Seçenek 2,Seçenek 3,Seçenek 4"
-                onChange={(e: ChangeEvent) => {
+                onChange={(e: any) => {
                   const options = e.target.value ? e.target.value.split(',').map(opt => opt.trim().replace(/^\s+|\s+$/g, '')) : [];
                   setFieldValue(`questions.${index}.options`, options);
                 }}
@@ -424,7 +369,7 @@ export default function TestEklePage() {
                 as="textarea"
                 className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 placeholder="6 x 2 - 2, 6 - 5 - 1, 2 x 4 - 2, 0 x 5 + 8"
-                onChange={(e: ChangeEvent) => {
+                onChange={(e: any) => {
                   const values = e.target.value.split(",").map(item => item.trim());
                   setFieldValue(`questions.${index}.question`, values);
                 }}
@@ -437,7 +382,7 @@ export default function TestEklePage() {
                 as="textarea"
                 className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 placeholder="10, 0, 6, 8"
-                onChange={(e: ChangeEvent) => {
+                onChange={(e: any) => {
                   const values = e.target.value.split(",").map(item => item.trim());
                   setFieldValue(`questions.${index}.correctAnswer`, values);
                 }}
@@ -479,7 +424,7 @@ export default function TestEklePage() {
                 as="textarea"
                 className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 placeholder="12, 3, -1, -5"
-                onChange={(e: ChangeEvent) => {
+                onChange={(e: any) => {
                   const values = e.target.value.split(",").map(item => Number(item.trim()));
                   setFieldValue(`questions.${index}.correctAnswer`, values);
                 }}
@@ -507,7 +452,7 @@ export default function TestEklePage() {
             initialValues={initialValues}
             onSubmit={handleSubmit}
           >
-            {({ values, setFieldValue, resetForm }: FormikProps) => (
+            {({ values, setFieldValue, resetForm }) => (
               <Form className="space-y-8">
                 <div className="grid gap-6 md:grid-cols-2">
                   <div className="col-span-2 md:col-span-1">

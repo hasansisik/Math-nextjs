@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, use } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useSelector, useDispatch } from "react-redux"
@@ -12,53 +12,12 @@ import { X } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { updateExam, updateMatching, updatePlacement, updateFraction } from "@/redux/actions/questionActions"
 
-interface BaseQuestion {
-  title: string;
-}
-
-interface MultipleChoiceQuestion extends BaseQuestion {
-  question: string;
-  options: string[];
-  correctAnswer: string;
-}
-
-interface MatchingQuestion extends BaseQuestion {
-  question: string[];
-  correctAnswer: string[];
-}
-
-interface PlacementQuestion extends BaseQuestion {
-  type: ">" | "<";
-  correctAnswer: number[];
-  direction: string;
-}
-
-interface FractionQuestionPart {
-  mixedFraction: string;
-  parts: {
-    A: string;
-    B: string;
-    C: string;
-  };
-  answer: string;
-}
-
-interface FractionQuestion extends BaseQuestion {
-  question: FractionQuestionPart[];
-}
-
-interface FormValues {
-  title: string;
-  description: string;
-  accuracy: number;
-  completionRate: number;
-  questionsCount: number;
-  questions: (MultipleChoiceQuestion | MatchingQuestion | PlacementQuestion | FractionQuestion)[];
-}
-
-interface FormikHelpers {
-  resetForm: () => void;
-}
+const questionTypes = [
+  { value: "Çoktan Seçmeli", label: "Çoktan Seçmeli Test", type: "exams" },
+  { value: "Eşleştirme", label: "Eşleştirme Soruları", type: "matchings" },
+  { value: "Sıralama", label: "Sıralama Soruları", type: "placements" },
+  { value: "Kesir", label: "Kesir Soruları", type: "fractions" },
+]
 
 export default function TestDuzenlePage({ params }: { params: { id: string } }) {
   const [selectedCategory, setSelectedCategory] = useState("")
@@ -96,7 +55,7 @@ export default function TestDuzenlePage({ params }: { params: { id: string } }) 
     }
   }, [testData, test]);
 
-  const handleSubmit = async (values: FormValues, { resetForm }: FormikHelpers) => {
+  const handleSubmit = async (values: any, { resetForm }: any) => {
     if (!selectedCategory || !selectedType) {
       toast({
         variant: "destructive",
@@ -116,7 +75,7 @@ export default function TestDuzenlePage({ params }: { params: { id: string } }) 
           accuracy: values.accuracy,
           completionRate: values.completionRate,
           questionsCount: values.questions.length,
-          questions: (values.questions as MatchingQuestion[]).map((q) => ({
+          questions: values.questions.map((q: any) => ({
             title: q.title,
             question: Array.isArray(q.question) ? q.question : [],
             correctAnswer: Array.isArray(q.correctAnswer) ? q.correctAnswer : []
@@ -130,7 +89,7 @@ export default function TestDuzenlePage({ params }: { params: { id: string } }) 
           completionRate: values.completionRate,
           category: "Sıralama",
           questionsCount: values.questions.length,
-          questions: (values.questions as PlacementQuestion[]).map((q) => ({
+          questions: values.questions.map((q: any) => ({
             title: q.title,
             type: q.direction === "Büyükten küçüğe doğru sıralayınız" ? ">" : "<",
             correctAnswer: Array.isArray(q.correctAnswer) ? q.correctAnswer.map(Number) : [],
@@ -144,9 +103,9 @@ export default function TestDuzenlePage({ params }: { params: { id: string } }) 
           accuracy: values.accuracy,
           completionRate: values.completionRate,
           questionsCount: values.questions.length,
-          questions: (values.questions as FractionQuestion[]).map((q) => ({
+          questions: values.questions.map((q: any) => ({
             title: q.title || "",
-            question: q.question.map((question) => ({
+            question: q.question.map((question: any) => ({
               mixedFraction: question.mixedFraction || "",
               parts: {
                 A: question.parts?.A || "",
@@ -164,7 +123,7 @@ export default function TestDuzenlePage({ params }: { params: { id: string } }) 
           accuracy: values.accuracy,
           completionRate: values.completionRate,
           questionsCount: values.questions.length,
-          questions: (values.questions as MultipleChoiceQuestion[]).map((q) => ({
+          questions: values.questions.map((q: any) => ({
             question: q.question || "",
             options: Array.isArray(q.options) ? q.options : [],
             correctAnswer: q.correctAnswer || ""

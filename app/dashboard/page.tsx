@@ -27,23 +27,6 @@ import { AppDispatch, RootState } from "@/redux/store";
 import { getQuestions } from "@/redux/actions/questionActions";
 import { CellAction } from "@/components/cell-action";
 
-interface Test {
-  title: string;
-  category: string;
-  questionsCount: number;
-  accuracy: number;
-  completionRate: number;
-  createdAt: string;
-  _id: string;
-}
-
-interface QuestionItem {
-  exams?: Test;
-  matching?: Test;
-  placement?: Test;
-  fraction?: Test;
-}
-
 export default function TestlerimPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const dispatch = useDispatch<AppDispatch>();
@@ -56,8 +39,8 @@ export default function TestlerimPage() {
   const getAllTests = () => {
     if (!tests) return [];
     
-    const allTests: Test[] = [];
-    tests.forEach((item: QuestionItem) => {
+    const allTests: any[] = [];
+    tests.forEach((item) => {
       if (item.exams) allTests.push(item.exams);
       if (item.matching) allTests.push(item.matching);
       if (item.placement) allTests.push(item.placement);

@@ -18,20 +18,13 @@ import { getQuestions } from "@/redux/actions/questionActions";
 import { AppDispatch, RootState } from "@/redux/store";
 import { useDispatch, useSelector } from "react-redux";
 
-interface Question {
-  fraction?: {
-    _id: string;
-    questions: any[];
-  };
-}
-
 const FractionPage = ({ params }: { params: Usable<{ fractionId: string }> }) => {
   const router = useRouter();
   const unwrappedParams = use(params);
   const { questions } = useSelector((state: RootState) => state.question);
   const dispatch = useDispatch<AppDispatch>();
 
-  const fractionData = questions?.find((q: Question) => 
+  const fractionData = questions?.find((q: any) => 
     q.fraction && q.fraction._id === unwrappedParams.fractionId
   )?.fraction;
 
@@ -135,6 +128,7 @@ const FractionPage = ({ params }: { params: Usable<{ fractionId: string }> }) =>
     let correct = 0;
     let incorrect = 0;
     let empty = 0;
+    const totalQuestions = fractionData.questions.reduce((acc, q) => acc + q.question.length, 0);
 
     fractionData.questions.forEach((question) => {
       question.question.forEach((q, index) => {
