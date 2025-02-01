@@ -83,7 +83,6 @@ export default function TestDuzenlePage() {
           description: values.description,
           accuracy: values.accuracy,
           completionRate: values.completionRate,
-          category: "Sıralama",
           questionsCount: values.questions.length,
           questions: values.questions.map((q: any) => ({
             title: q.title,
