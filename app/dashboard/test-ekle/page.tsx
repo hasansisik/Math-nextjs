@@ -10,6 +10,7 @@ import { createExam, createMatching, createPlacement, createFraction } from "@/r
 import { useToast } from "@/hooks/use-toast"
 import { Formik, Form, Field, FieldArray } from 'formik'
 import { X } from "lucide-react"
+import type { AppDispatch } from "@/redux/store";
 
 const questionTypes = [
   { value: "Çoktan Seçmeli", label: "Çoktan Seçmeli Test",type:"exams" },
@@ -90,7 +91,7 @@ export default function TestEklePage() {
   const [selectedCategory, setSelectedCategory] = useState("")
   const [selectedType, setSelectedType] = useState("")
   const [initialValues, setInitialValues] = useState(getInitialValues(""))
-  const dispatch = useDispatch()
+  const dispatch = useDispatch<AppDispatch>();
   const { toast } = useToast()
 
   const handleSubmit = async (values: any, { resetForm }: any) => {
@@ -129,7 +130,6 @@ export default function TestEklePage() {
           description: values.description,
           accuracy: values.accuracy,
           completionRate: values.completionRate,
-          category: "Sıralama",
           questionsCount: values.questions.length,
           questions: values.questions.map((q: any) => ({
             title: q.title,
@@ -329,7 +329,7 @@ export default function TestEklePage() {
                 className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 placeholder="Seçenek 1,Seçenek 2,Seçenek 3,Seçenek 4"
                 onChange={(e: any) => {
-                  const options = e.target.value ? e.target.value.split(',').map(opt => opt.trim().replace(/^\s+|\s+$/g, '')) : [];
+                  const options = e.target.value ? e.target.value.split(',').map((opt: string) => opt.trim().replace(/^\s+|\s+$/g, '')) : [];
                   setFieldValue(`questions.${index}.options`, options);
                 }}
               />
@@ -370,7 +370,7 @@ export default function TestEklePage() {
                 className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 placeholder="6 x 2 - 2, 6 - 5 - 1, 2 x 4 - 2, 0 x 5 + 8"
                 onChange={(e: any) => {
-                  const values = e.target.value.split(",").map(item => item.trim());
+                  const values = e.target.value.split(",").map((item: string) => item.trim());
                   setFieldValue(`questions.${index}.question`, values);
                 }}
               />
@@ -383,7 +383,7 @@ export default function TestEklePage() {
                 className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 placeholder="10, 0, 6, 8"
                 onChange={(e: any) => {
-                  const values = e.target.value.split(",").map(item => item.trim());
+                  const values = e.target.value.split(",").map((item: string) => item.trim());
                   setFieldValue(`questions.${index}.correctAnswer`, values);
                 }}
               />
@@ -425,7 +425,7 @@ export default function TestEklePage() {
                 className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 placeholder="12, 3, -1, -5"
                 onChange={(e: any) => {
-                  const values = e.target.value.split(",").map(item => Number(item.trim()));
+                  const values = e.target.value.split(",").map((item: string) => item.trim());
                   setFieldValue(`questions.${index}.correctAnswer`, values);
                 }}
               />

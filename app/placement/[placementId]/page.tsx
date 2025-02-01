@@ -204,7 +204,7 @@ const MatchingPage = () => {
     let empty = 0;
 
     // Check each position for correctness
-    correctOrder.forEach((correctAnswer, index) => {
+    correctOrder.forEach((correctAnswer: string, index: number) => {
       const droppedItem = droppedItems[correctAnswer];
       if (droppedItem) {
         if (droppedItem === correctAnswer) {
@@ -294,20 +294,20 @@ const MatchingPage = () => {
               {/* Yuva alanı */}
               <div className="flex flex-wrap sm:justify-start justify-center gap-4 mb-4">
                 {placement.questions[currentQuestionIndex].correctAnswer.map(
-                  (correctAnswer, index) => (
+                  (correctAnswer: string, index: number) => (
                     <div key={index} className="flex items-center">
-                      <Droppable id={String(correctAnswer)}>
-                        {droppedItems[String(correctAnswer)] && (
+                      <Droppable id={correctAnswer}>
+                        {droppedItems[correctAnswer] && (
                           <div
                             className={`p-2 w-full h-full text-center rounded-full
                         ${
-                          droppedItems[String(correctAnswer)] ===
-                          String(correctAnswer)
+                          droppedItems[correctAnswer] ===
+                          correctAnswer
                             ? "bg-green-200"
                             : "bg-red-200"
                         }`}
                           >
-                            {droppedItems[String(correctAnswer)]}
+                            {droppedItems[correctAnswer]}
                           </div>
                         )}
                       </Droppable>
@@ -327,7 +327,7 @@ const MatchingPage = () => {
 
             {/* Taşınabilir öğeler */}
             <div className="flex flex-wrap justify-center items-center gap-4 mt-4 sticky bottom-4 bg-white p-4 border rounded shadow-lg w-full">
-              {items.map((item) => (
+              {items.map((item, index: number) => (
                 <Draggable key={item} id={item}>
                   <div
                     className={`
@@ -383,7 +383,7 @@ const MatchingPage = () => {
 
         <ScrollArea className="my-5">
           <div className="grid grid-cols-10 gap-2">
-            {placement.questions.map((_, index) => (
+            {placement.questions.map((_: any, index: number) => (
               <Button
                 key={index}
                 variant="outline"

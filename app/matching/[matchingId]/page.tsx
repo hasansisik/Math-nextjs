@@ -202,7 +202,7 @@ export default function MatchingPage() {
     let empty = 0;
 
     // Count correct, incorrect, and empty matches
-    currentQuestion?.question?.forEach((_, index) => {
+    currentQuestion?.question?.forEach((_: any, index: number) => {
       const dropZoneId = `drop-${index}`;
       if (userAnswers[dropZoneId]) {
         const answerIndex = parseInt(userAnswers[dropZoneId]);
@@ -325,10 +325,10 @@ export default function MatchingPage() {
           <div className="flex flex-col pt-10 gap-8">
             <div className="border-b pb-4">
               <div className="flex flex-wrap gap-4 mb-4">
-                {currentQuestion?.question?.map((question, qIndex) => (
+                {currentQuestion?.question?.map((question: string | number, qIndex: number) => (
                   <div key={qIndex} className="flex flex-col gap-2">
                     <div className="flex items-center justify-center border border-gray-300 bg-gray-100 p-2 rounded min-w-[200px]">
-                      {renderQuestionContent(question)}
+                      {renderQuestionContent(question.toString())}
                     </div>
                     <Droppable id={`drop-${qIndex}`}>
                       {userAnswers[`drop-${qIndex}`] && (
@@ -347,7 +347,7 @@ export default function MatchingPage() {
             </div>
 
             <div className="flex flex-wrap gap-2 mt-4 sticky bottom-4 bg-white p-4 border rounded shadow-lg">
-              {currentQuestion?.correctAnswer.map((answer, index) => (
+              {currentQuestion?.correctAnswer.map((answer: string, index: number) => (
                 <Draggable key={index} id={index.toString()} disabled={Object.values(userAnswers).includes(index.toString())}>
                   <div
                     className={`flex items-center justify-center min-w-[200px] h-12 rounded
@@ -393,7 +393,7 @@ export default function MatchingPage() {
 
         <ScrollArea className="my-5">
           <div className="grid grid-cols-10 gap-2">
-            {matchingData.questions.map((_, index) => (
+            {matchingData.questions.map((_: any, index: number) => (
               <Button
                 key={index}
                 variant="outline"

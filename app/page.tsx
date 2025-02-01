@@ -11,6 +11,34 @@ import { AppDispatch, RootState } from "@/redux/store";
 import { getQuestions } from "@/redux/actions/questionActions";
 import { Loader2 } from "lucide-react";
 
+interface QuestionItem {
+  exams?: ExamType;
+  matching?: MatchingType;
+  placement?: PlacementType;
+  fraction?: FractionType;
+}
+
+interface ExamType {
+  accuracy: number;
+  completionRate: number;
+  category: string;
+  createdAt: string;
+  questionsCount: number;
+  _id: string;
+  title: string;
+}
+
+interface MatchingType extends ExamType {}
+interface PlacementType extends ExamType {}
+interface FractionType extends ExamType {}
+
+interface ProcessedQuestions {
+  exams: ExamType[];
+  matching: MatchingType[];
+  placement: PlacementType[];
+  fraction: FractionType[];
+}
+
 export default function Home() {
   const [selectedFilter, setSelectedFilter] = useState("all");
   const router = useRouter();
@@ -25,8 +53,8 @@ export default function Home() {
     setSelectedFilter(filter);
   };
 
-  const processQuestions = (questions: any[]) => {
-    return questions.reduce((acc: any, item: any) => {
+  const processQuestions = (questions: QuestionItem[]): ProcessedQuestions => {
+    return questions.reduce((acc: Partial<ProcessedQuestions>, item: QuestionItem) => {
       if (item.exams) {
         acc.exams = [...(acc.exams || []), item.exams];
       }
@@ -40,10 +68,10 @@ export default function Home() {
         acc.fraction = [...(acc.fraction || []), item.fraction];
       }
       return acc;
-    }, {});
+    }, {}) as ProcessedQuestions;
   };
 
-  const processedQuestions = questions ? processQuestions(questions) : {};
+  const processedQuestions = questions ? processQuestions(questions) : {} as ProcessedQuestions;
   const { exams = [], matching = [], placement = [], fraction = [] } = processedQuestions;
 
   if (loading) {

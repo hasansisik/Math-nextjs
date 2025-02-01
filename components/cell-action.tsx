@@ -15,6 +15,7 @@ import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { deleteExam, deleteMatching, deleteFraction, deletePlacement, getQuestions } from '@/redux/actions/questionActions';
 import { toast } from '@/hooks/use-toast';
+import { AppDispatch } from "@/redux/store";
 
 interface CellActionProps {
   data: any;
@@ -24,7 +25,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const router = useRouter();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
 
   const onConfirm = async () => {
     try {

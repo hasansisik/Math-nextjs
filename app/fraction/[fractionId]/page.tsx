@@ -18,6 +18,30 @@ import { getQuestions } from "@/redux/actions/questionActions";
 import { AppDispatch, RootState } from "@/redux/store";
 import { useDispatch, useSelector } from "react-redux";
 
+interface Question {
+  answer: string;
+  parts: {
+    A: string;
+    B: string;
+    C: string;
+  };
+}
+
+interface FractionQuestion {
+  question: Question[];
+  title: string;
+}
+
+interface Fraction {
+  _id: string;
+  questions: FractionQuestion[];
+  title: string;
+}
+
+interface QuestionData {
+  fraction: Fraction;
+}
+
 const FractionPage = () => {
   const router = useRouter();
   const pathname = usePathname();
@@ -25,7 +49,7 @@ const FractionPage = () => {
   const { questions } = useSelector((state: RootState) => state.question);
   const dispatch = useDispatch<AppDispatch>();
 
-  const fractionData = questions?.find((q: any) => 
+  const fractionData = questions?.find((q: QuestionData) => 
     q.fraction && q.fraction._id === fractionId
   )?.fraction;
 
@@ -129,10 +153,9 @@ const FractionPage = () => {
     let correct = 0;
     let incorrect = 0;
     let empty = 0;
-    const totalQuestions = fractionData.questions.reduce((acc, q) => acc + q.question.length, 0);
 
-    fractionData.questions.forEach((question) => {
-      question.question.forEach((q, index) => {
+    fractionData.questions.forEach((question: FractionQuestion) => {
+      question.question.forEach((q: Question, index: number) => {
         const userAnswer = userAnswers[index];
         const [correctNumerator, correctDenominator] = q.answer.split('/');
         
@@ -215,7 +238,7 @@ const FractionPage = () => {
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
-          {fractionData.questions[currentQuestionIndex].question.map((q, index) => (
+          {fractionData.questions[currentQuestionIndex].question.map((q: Question, index: number) => (
             <div key={index} className="bg-white p-6 rounded-lg border shadow-sm flex items-center justify-center h-[200px]">
               <div className="flex items-center justify-center gap-4">
                 <div className="flex items-center gap-1">
@@ -276,7 +299,7 @@ const FractionPage = () => {
 
         <ScrollArea className="my-5">
           <div className="grid grid-cols-10 gap-2">
-            {fractionData.questions.map((_, index) => (
+            {fractionData.questions.map((_: any, index: number) => (
               <Button
                 key={index}
                 variant="outline"
@@ -303,7 +326,7 @@ const FractionPage = () => {
                 <div className="flex justify-between items-center py-2 border-b">
                   <span>Toplam Soru:</span>
                   <span className="font-medium">
-                    {fractionData.questions.reduce((acc, q) => acc + q.question.length, 0)}
+                    {fractionData.questions.reduce((acc: number, q: FractionQuestion) => acc + q.question.length, 0)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b">

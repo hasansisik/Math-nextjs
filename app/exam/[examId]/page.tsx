@@ -100,7 +100,7 @@ export default function ExamPage() {
     let incorrectCount = 0;
     let emptyCount = 0;
 
-    examData.questions.forEach((question, index) => {
+    examData.questions.forEach((question: { correctAnswer: string }, index: number) => {
       if (userAnswers[index] === question.correctAnswer) {
         correctCount++;
       } else if (userAnswers[index]) {
@@ -245,7 +245,7 @@ export default function ExamPage() {
               value={userAnswers[currentQuestionIndex] || ""}
               onValueChange={handleAnswerChange}
             >
-              {currentQuestion.options.map((option, optionIndex) => {
+              {currentQuestion.options.map((option: string, optionIndex: number) => {
                 const letters = ['A', 'B', 'C', 'D'];
                 return (
                   <div 
@@ -293,7 +293,7 @@ export default function ExamPage() {
         </div>
         <ScrollArea className="my-5">
           <div className="grid grid-cols-10 gap-2">
-            {examData.questions.map((_, index) => (
+            {examData.questions.map((_: any, index: number) => (
               <Button
                 key={index}
                 variant={getButtonVariant(index)}
