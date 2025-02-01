@@ -21,7 +21,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Search, Plus } from "lucide-react";
+import { Search, Plus, Loader2 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
 import { getQuestions } from "@/redux/actions/questionActions";
@@ -55,8 +55,9 @@ export default function TestlerimPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        {/* <CircularProgress /> */}
+      <div className="flex flex-1 items-center justify-center flex-col gap-2">
+        <Loader2 className="h-12 w-12 animate-spin text-green-500" />
+        <span>Yükleniyor...</span>
       </div>
     );
   }

@@ -79,8 +79,12 @@ export default function ExamPage({
   const exam = questions?.find((q: any) => q.exams?._id === resolvedParams.examId)?.exams;
 
   if (loading) {
-    return <div>Loading...</div>;
-  }
+    return (
+      <div className="flex flex-1 items-center justify-center flex-col gap-2">
+        <Loader2 className="h-12 w-12 animate-spin text-green-500" />
+        <span>Yükleniyor...</span>
+      </div>
+    );}
 
   if (!exam) {
     return (

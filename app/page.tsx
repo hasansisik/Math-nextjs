@@ -9,14 +9,13 @@ import CircularProgress from "@/components/ui/CircularProgress";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
 import { getQuestions } from "@/redux/actions/questionActions";
+import { Loader2 } from "lucide-react";
 
 export default function Home() {
   const [selectedFilter, setSelectedFilter] = useState("all");
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
   const { questions, loading } = useSelector((state: RootState) => state.question);
-
-  console.log("q", questions)
 
   useEffect(() => {
     dispatch(getQuestions());
@@ -49,8 +48,9 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <CircularProgress />
+      <div className="flex flex-1 items-center justify-center flex-col gap-2">
+        <Loader2 className="h-12 w-12 animate-spin text-green-500" />
+        <span>Yükleniyor...</span>
       </div>
     );
   }
