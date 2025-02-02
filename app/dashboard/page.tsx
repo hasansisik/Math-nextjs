@@ -102,8 +102,8 @@ export default function TestlerimPage() {
                     <TableHead>Test Adı</TableHead>
                     <TableHead>Kategori</TableHead>
                     <TableHead>Soru Sayısı</TableHead>
-                    <TableHead>Doğruluk Oranı</TableHead>
-                    <TableHead>Tamamlanma Oranı</TableHead>
+                    <TableHead>Zorluk Oranı</TableHead>
+                    <TableHead>Başarı Yüzdesi</TableHead>
                     <TableHead>Oluşturulma Tarihi</TableHead>
                     <TableHead>İşlemler</TableHead>
                   </TableRow>

@@ -502,24 +502,24 @@ export default function TestEklePage() {
                   </div>
 
                   <div className="col-span-2 md:col-span-1">
-                    <label className="block text-sm font-medium mb-1">Doğruluk Oranı</label>
+                    <label className="block text-sm font-medium mb-1">Zorluk Oranı</label>
                     <Field
                       type="number"
                       name="accuracy"
                       as={Input}
-                      placeholder="Doğruluk oranını giriniz..."
+                      placeholder="Zorluk Oranını giriniz..."
                       min={0}
                       max={100}
                     />
                   </div>
 
                   <div className="col-span-2 md:col-span-1">
-                    <label className="block text-sm font-medium mb-1">Tamamlanma Oranı</label>
+                    <label className="block text-sm font-medium mb-1">Başarı Yüzdesi</label>
                     <Field
                       type="number"
                       name="completionRate"
                       as={Input}
-                      placeholder="Tamamlanma oranını giriniz..."
+                      placeholder="Başarı Yüzdesinı giriniz..."
                       min={0}
                       max={100}
                     />
