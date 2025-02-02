@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -208,6 +207,14 @@ export default function TestDuzenlePage() {
     if (selectedType === "fractions") {
       return (
         <div>
+          <div className="col-span-2">
+              <label className="block text-sm font-medium mb-1">Soru Başlığı</label>
+              <Field
+                name={`questions.${index}.title`}
+                as={Input}
+                placeholder="Örnek: 1) Aşağıdaki verilen işlemlerini sonuçları ile eşleştiriniz"
+              />
+            </div>
           <FieldArray name={`questions.${index}.question`}>
             {({ push: pushQuestion, remove: removeQuestion }: any) => (
               <div className="space-y-4 mt-4">
@@ -249,7 +256,7 @@ export default function TestDuzenlePage() {
                         </div>
                         <div className="col-span-2">
                           <label className="block text-sm font-medium mb-1">
-                            Parçalar (AxB/C)
+                            Parçalar (AxC/B)
                           </label>
                           <div className="grid grid-cols-3 gap-4">
                             <Field

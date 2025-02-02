@@ -263,7 +263,7 @@ export default function TestEklePage() {
                       />
                     </div>
                     <div className="col-span-2">
-                      <label className="block text-sm font-medium mb-1">Parçalar (AxB/C)</label>
+                      <label className="block text-sm font-medium mb-1">Parçalar (AxC/B)</label>
                       <div className="grid grid-cols-3 gap-4">
                         <Field
                           name={`questions.${index}.question.${fractionIndex}.parts.A`}
