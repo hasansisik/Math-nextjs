@@ -128,7 +128,7 @@ export default function ExamPage() {
   const handleDialogClose = () => {
     setTimer({ minutes: 0, seconds: 0 }); // Timer'ı sıfırla
     setShowResults(false);
-    router.push("/exam");
+    router.push("/");
   };
 
   const handleNext = () => {

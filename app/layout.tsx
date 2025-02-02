@@ -1,8 +1,7 @@
 "use client";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import Link from "next/link";
-import { useState } from "react";
+
 import { Toaster } from "@/components/ui/toaster";
 import { Provider } from "react-redux";
 import store from "@/redux/store";
@@ -22,11 +21,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  const handleMenuClick = () => {
-    setMobileMenuOpen(false);
-  };
 
   return (
     <html lang="en">
@@ -34,34 +28,6 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
       >
         <Provider store={store}>
-          {/* Mobile Menu */}
-          {mobileMenuOpen && (
-            <div className="md:hidden border-b bg-white">
-              <nav className="flex flex-col py-4 px-8">
-                <Link
-                  href="/exam"
-                  onClick={handleMenuClick}
-                  className="py-2 hover:text-purple-600"
-                >
-                  Sınavlar
-                </Link>
-                <Link
-                  href="/lesson"
-                  onClick={handleMenuClick}
-                  className="py-2 hover:text-purple-600"
-                >
-                  Dersler
-                </Link>
-                <Link
-                  href="/query"
-                  onClick={handleMenuClick}
-                  className="py-2 hover:text-purple-600"
-                >
-                  Levhalar
-                </Link>
-              </nav>
-            </div>
-          )}
           <Toaster />
           {children}
         </Provider>
