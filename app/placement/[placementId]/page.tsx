@@ -219,7 +219,7 @@ const PlacementPage = () => {
 
   function checkResults() {
     const currentQuestion = placement.questions[currentQuestionIndex];
-    const correctOrder = currentQuestion.correctAnswer.map(value => value.toString());
+    const correctOrder = currentQuestion.correctAnswer.map((value: string | number) => value.toString());
     
     let correct = 0;
     let incorrect = 0;
