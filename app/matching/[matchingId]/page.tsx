@@ -396,11 +396,11 @@ export default function MatchingPage() {
               </div>
             </div>
 
-            <div className="flex justify-center items-center gap-2 fixed bottom-0 left-0 right-0 bg-white p-4 border-t shadow-lg z-50">
+            <div className="flex flex-wrap justify-center items-center gap-4 fixed bottom-0 left-0 right-0 bg-white p-4 border-t shadow-lg z-50 overflow-x-auto">
               {shuffledAnswers.map(({ index, value }) => (
                 <Draggable key={index} id={index.toString()}>
                   <div
-                    className={`flex items-center justify-center w-[80px] sm:w-[200px] h-12 rounded
+                    className={`flex items-center justify-center min-w-[70px] sm:min-w-[200px] h-12 rounded-full p-3
                       ${
                         Object.values(userAnswers).includes(index.toString())
                           ? "opacity-50"
@@ -413,7 +413,7 @@ export default function MatchingPage() {
                           ? "bg-green-100 font-bold"
                         : Object.values(userAnswers).includes(index.toString())
                           ? "bg-red-100 font-bold"
-                          : "bg-blue-100 font-bold"
+                          : "bg-blue-300 font-bold"
                       }
                     `}
                   >

@@ -318,7 +318,7 @@ const PlacementPage = () => {
                       <Droppable id={correctAnswer.toString()}>
                         {droppedItems[correctAnswer.toString()] && (
                           <div
-                            className={`p-2 w-[80px] sm:w-[200px] h-full text-center rounded-full
+                            className={`p-2 w-full h-full text-center rounded-full
                         ${
                           droppedItems[correctAnswer.toString()] ===
                           correctAnswer.toString()
