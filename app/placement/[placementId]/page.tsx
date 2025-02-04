@@ -63,7 +63,7 @@ function Droppable({ id, children }: { id: string; children: React.ReactNode }) 
   return (
     <div
       ref={setNodeRef}
-      className={`h-12 border-2 border-dashed rounded-full flex items-center justify-center min-w-[200px]
+      className={`h-12 border-2 border-dashed rounded-full flex items-center justify-center min-w-[80px] sm:min-w-[200px]
         ${isOver ? "border-blue-500 bg-blue-50" : "border-gray-300"}`}
     >
       {children}
@@ -254,11 +254,11 @@ const PlacementPage = () => {
 
   return (
     <div className="flex flex-col m-5">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center flex-row">
-          <div
-            className="p-2 bg-slate-100 mr-3 rounded-sm cursor-pointer hover:bg-slate-200"
-            onClick={() => router.push("/")}
+      <div className="flex flex-col xs:flex-row items-center justify-between gap-4">
+        <div className='flex items-center flex-row'>
+          <div 
+            className="p-2 bg-slate-100 mr-3 rounded-sm cursor-pointer hover:bg-slate-200" 
+            onClick={() => router.push('/')}
           >
             <X />
           </div>
@@ -266,17 +266,22 @@ const PlacementPage = () => {
           <div className="flex items-center gap-1">
             <span className="mr-2">Geçen Süre:</span>
             <span className="px-3 py-1 bg-primary text-white rounded-sm">
-              {String(timer.minutes).padStart(2, "0")}
+              {String(timer.minutes).padStart(2, '0')}
             </span>
             <span>:</span>
             <span className="px-3 py-1 bg-primary text-white rounded-sm">
-              {String(timer.seconds).padStart(2, "0")}
+              {String(timer.seconds).padStart(2, '0')}
             </span>
           </div>
         </div>
-        <Button variant="destructive" onClick={handleSubmit}>
-          Sınavı Bitir
-        </Button>
+        <div className="flex justify-center w-full xs:w-auto">
+          <Button 
+            variant="destructive" 
+            onClick={handleSubmit}
+          >
+            Sınavı Bitir
+          </Button>
+        </div>
       </div>
 
       <div className="flex flex-col mx-auto pt-10  gap-2">
@@ -313,7 +318,7 @@ const PlacementPage = () => {
                       <Droppable id={correctAnswer.toString()}>
                         {droppedItems[correctAnswer.toString()] && (
                           <div
-                            className={`p-2 w-full h-full text-center rounded-full
+                            className={`p-2 w-[80px] sm:w-[200px] h-full text-center rounded-full
                         ${
                           droppedItems[correctAnswer.toString()] ===
                           correctAnswer.toString()
@@ -345,7 +350,7 @@ const PlacementPage = () => {
                 <Draggable key={item} id={item.toString()}>
                   <div
                     className={`
-                    flex items-center justify-center w-[200px] h-12 rounded-full
+                    flex items-center justify-center w-[80px] sm:w-[200px] h-12 rounded-full
                     ${
                       Object.values(droppedItems).includes(item.toString())
                         ? "opacity-50"

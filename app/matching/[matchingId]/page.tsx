@@ -322,7 +322,7 @@ export default function MatchingPage() {
 
   return (
     <div className="flex flex-col m-5">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col xs:flex-row items-center justify-between gap-4">
         <div className='flex items-center flex-row'>
           <div 
             className="p-2 bg-slate-100 mr-3 rounded-sm cursor-pointer hover:bg-slate-200" 
@@ -342,12 +342,14 @@ export default function MatchingPage() {
           </span>
         </div>
         </div>
-        <Button 
-          variant="destructive" 
-          onClick={handleSubmit}
-        >
-          Sınavı Bitir
-        </Button>
+        <div className="flex justify-center w-full xs:w-auto">
+          <Button 
+            variant="destructive" 
+            onClick={handleSubmit}
+          >
+            Sınavı Bitir
+          </Button>
+        </div>
       </div>
       
       <div className="flex flex-col mx-auto pt-10  gap-2">
@@ -372,10 +374,10 @@ export default function MatchingPage() {
         >
           <div className="flex flex-col pt-10 gap-8">
             <div className="border-b pb-4">
-              <div className="flex flex-wrap gap-4 mb-4">
+              <div className="flex gap-4 mb-4">
                 {currentQuestion?.question?.map((question: string | number, qIndex: number) => (
                   <div key={qIndex} className="flex flex-col gap-2">
-                    <div className="flex items-center justify-center border border-gray-300 bg-gray-100 p-2 rounded min-w-[200px]">
+                    <div className="flex items-center justify-center border border-gray-300 bg-gray-100 p-2 rounded w-full sm:min-w-[200px]">
                       {renderQuestionContent(question.toString())}
                     </div>
                     <Droppable id={`drop-${qIndex}`}>
@@ -394,11 +396,11 @@ export default function MatchingPage() {
               </div>
             </div>
 
-            <div className="flex flex-wrap justify-center items-center gap-4 fixed bottom-0 left-0 right-0 bg-white p-4 border-t shadow-lg z-50">
+            <div className="flex justify-center items-center gap-2 fixed bottom-0 left-0 right-0 bg-white p-4 border-t shadow-lg z-50">
               {shuffledAnswers.map(({ index, value }) => (
                 <Draggable key={index} id={index.toString()}>
                   <div
-                    className={`flex items-center justify-center min-w-[200px] h-12 rounded
+                    className={`flex items-center justify-center w-[80px] sm:w-[200px] h-12 rounded
                       ${
                         Object.values(userAnswers).includes(index.toString())
                           ? "opacity-50"
@@ -411,7 +413,7 @@ export default function MatchingPage() {
                           ? "bg-green-100 font-bold"
                         : Object.values(userAnswers).includes(index.toString())
                           ? "bg-red-100 font-bold"
-                          : "bg-blue-300 font-bold"
+                          : "bg-blue-100 font-bold"
                       }
                     `}
                   >

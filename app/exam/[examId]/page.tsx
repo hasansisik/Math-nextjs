@@ -191,8 +191,8 @@ export default function ExamPage() {
 
   return (
     <div className="flex flex-col m-5">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center flex-row">
+      <div className="flex flex-col xs:flex-row items-center justify-between gap-4">
+        <div className='flex items-center flex-row'>
           <div 
             className="p-2 bg-slate-100 mr-3 rounded-sm cursor-pointer hover:bg-slate-200" 
             onClick={() => router.push('/')}
@@ -203,17 +203,22 @@ export default function ExamPage() {
           <div className="flex items-center gap-1">
             <span className="mr-2">Geçen Süre:</span>
             <span className="px-3 py-1 bg-primary text-white rounded-sm">
-              {String(timer.minutes).padStart(2, "0")}
+              {String(timer.minutes).padStart(2, '0')}
             </span>
             <span>:</span>
             <span className="px-3 py-1 bg-primary text-white rounded-sm">
-              {String(timer.seconds).padStart(2, "0")}
+              {String(timer.seconds).padStart(2, '0')}
             </span>
           </div>
         </div>
-        <Button variant="destructive" onClick={handleFinishExam}>
-          {showAnswers ? "Sınavı Bitir" : "Sınavı Bitir"}
-        </Button>
+        <div className="flex justify-center w-full xs:w-auto">
+          <Button 
+            variant="destructive" 
+            onClick={handleFinishExam}
+          >
+            Sınavı Bitir
+          </Button>
+        </div>
       </div>
 
       <div className="flex flex-col mx-auto pt-10  gap-2">
@@ -276,7 +281,7 @@ export default function ExamPage() {
             }
           >
             {currentQuestionIndex === examData.questions.length - 1
-              ? (showAnswers ? "Sınavı Bitir" : "Sınavı Bitir")
+              ? "Sınavı Bitir"
               : "Sonraki Soru"}
           </Button>
         </div>
