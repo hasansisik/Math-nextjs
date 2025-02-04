@@ -78,6 +78,7 @@ const PlacementPage = () => {
   const { questions, loading } = useSelector((state: RootState) => state.question);
   const dispatch = useDispatch<AppDispatch>();
   const [showResults, setShowResults] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
   const [timer, setTimer] = useState({ minutes: 0, seconds: 0 });
   const [timerActive, setTimerActive] = useState(true);
   const [items, setItems] = useState<string[]>([]);
@@ -192,8 +193,31 @@ const PlacementPage = () => {
     }
   }
 
+  function handleDialogClose() {
+    setShowResults(false);
+    router.push('/');
+  }
+
+  function handleConfirmationClose() {
+    setShowConfirmation(false);
+  }
+
+  function handleFinishExam() {
+    setShowConfirmation(true);
+  }
+
+  function handleConfirmFinish() {
+    setShowConfirmation(false);
+    checkResults();
+    setShowResults(true);
+  }
+
   const handleSubmit = () => {
     setTimerActive(false);
+    handleFinishExam();
+  };
+
+  function checkResults() {
     const currentQuestion = placement.questions[currentQuestionIndex];
     const correctOrder = currentQuestion.correctAnswer.map(value => value.toString());
     
@@ -226,8 +250,6 @@ const PlacementPage = () => {
       empty,
       totalPoints,
     });
-
-    setShowResults(true);
   };
 
   return (
@@ -378,8 +400,7 @@ const PlacementPage = () => {
             {placement.questions.map((_: any, index: number) => (
               <Button
                 key={index}
-                variant="outline"
-               
+                variant={currentQuestionIndex === index ? "default" : "outline"}        
                 onClick={() => setCurrentQuestionIndex(index)}
               >
                 {index + 1}
@@ -389,7 +410,7 @@ const PlacementPage = () => {
         </ScrollArea>
       </div>
 
-      <Dialog open={showResults} onOpenChange={setShowResults}>
+      <Dialog open={showResults} onOpenChange={handleDialogClose}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Sınav Sonucu</DialogTitle>
@@ -427,6 +448,25 @@ const PlacementPage = () => {
           </div>
           <DialogFooter>
             <Button onClick={() => router.push("/")}>Ana Sayfaya Dön</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showConfirmation} onOpenChange={handleConfirmationClose}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Sınavı Bitir</DialogTitle>
+            <DialogDescription>
+              Sınavı bitirmek istediğinizden emin misiniz?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleConfirmationClose}>
+              Hayır
+            </Button>
+            <Button onClick={handleConfirmFinish}>
+              Evet
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

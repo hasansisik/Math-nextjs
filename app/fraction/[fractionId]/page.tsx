@@ -55,6 +55,7 @@ const FractionPage = () => {
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showResults, setShowResults] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
   const [matchResults, setMatchResults] = useState({
     correct: 0,
     incorrect: 0,
@@ -149,7 +150,29 @@ const FractionPage = () => {
 
   const handleSubmit = () => {
     setTimerActive(false);
+    handleFinishExam();
+  };
 
+  function handleDialogClose() {
+    setShowResults(false);
+    router.push('/');
+  }
+
+  function handleConfirmationClose() {
+    setShowConfirmation(false);
+  }
+
+  function handleFinishExam() {
+    setShowConfirmation(true);
+  }
+
+  function handleConfirmFinish() {
+    setShowConfirmation(false);
+    checkResults();
+    setShowResults(true);
+  }
+
+  const checkResults = () => {
     let correct = 0;
     let incorrect = 0;
     let empty = 0;
@@ -182,14 +205,6 @@ const FractionPage = () => {
       empty,
       totalPoints,
     });
-
-    setShowResults(true);
-  };
-
-  const handleDialogClose = () => {
-    setTimer({ minutes: 0, seconds: 0 });
-    setShowResults(false);
-    router.push("/");
   };
 
   return (
@@ -302,7 +317,7 @@ const FractionPage = () => {
             {fractionData.questions.map((_: any, index: number) => (
               <Button
                 key={index}
-                variant="outline"
+                variant={currentQuestionIndex === index ? "default" : "outline"}
                 onClick={() => setCurrentQuestionIndex(index)}
               >
                 {index + 1}
@@ -350,6 +365,25 @@ const FractionPage = () => {
           </div>
           <DialogFooter>
             <Button onClick={handleDialogClose}>Tamam</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showConfirmation} onOpenChange={handleConfirmationClose}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Sınavı Bitir</DialogTitle>
+            <DialogDescription>
+              Sınavı bitirmek istediğinizden emin misiniz?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleConfirmationClose}>
+              Hayır
+            </Button>
+            <Button onClick={handleConfirmFinish}>
+              Evet
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

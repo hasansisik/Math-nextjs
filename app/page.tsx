@@ -156,7 +156,7 @@ export default function Home() {
                       </div>
                       <div className="flex flex-col justify-between mt-4">
                         <p className="px-4 py-1 bg-gray-100 rounded-full w-fit">
-                          {exam.category}
+                          {exam.category === "Kesir" ? "Cevap Yazma" : exam.category}
                         </p>
                         <div className="pt-4 flex flex-row justify-between">
                           <p className="text-base">
@@ -219,7 +219,7 @@ export default function Home() {
                       </div>
                       <div className="flex flex-col justify-between mt-4">
                         <p className="px-4 py-1 bg-gray-100 rounded-full w-fit">
-                          {match.category}
+                          {match.category === "Kesir" ? "Cevap Yazma" : match.category}
                         </p>
                         <div className="pt-4 flex flex-row justify-between">
                           <p className="text-base">
@@ -282,7 +282,7 @@ export default function Home() {
                       </div>
                       <div className="flex flex-col justify-between mt-4">
                         <p className="px-4 py-1 bg-gray-100 rounded-full w-fit">
-                          {place.category}
+                          {place.category === "Kesir" ? "Cevap Yazma" : place.category}
                         </p>
                         <div className="pt-4 flex flex-row justify-between">
                           <p className="text-base">
@@ -344,7 +344,7 @@ export default function Home() {
                       </div>
                       <div className="flex flex-col justify-between mt-4">
                         <p className="px-4 py-1 bg-gray-100 rounded-full w-fit">
-                          {frac.category}
+                          {frac.category === "Kesir" ? "Cevap Yazma" : frac.category}
                         </p>
                         <div className="pt-4 flex flex-row justify-between">
                           <p className="text-base">
@@ -407,7 +407,7 @@ export default function Home() {
                       </div>
                       <div className="flex flex-col justify-between mt-4">
                         <p className="px-4 py-1 bg-gray-100 rounded-full w-fit">
-                          {exam.category}
+                          {exam.category === "Kesir" ? "Cevap Yazma" : exam.category}
                         </p>
                         <div className="pt-4 flex flex-row justify-between">
                           <p className="text-base">
@@ -466,7 +466,7 @@ export default function Home() {
                       </div>
                       <div className="flex flex-col justify-between mt-4">
                         <p className="px-4 py-1 bg-gray-100 rounded-full w-fit">
-                          {match.category}
+                          {match.category === "Kesir" ? "Cevap Yazma" : match.category}
                         </p>
                         <div className="pt-4 flex flex-row justify-between">
                           <p className="text-base">
@@ -525,7 +525,7 @@ export default function Home() {
                       </div>
                       <div className="flex flex-col justify-between mt-4">
                         <p className="px-4 py-1 bg-gray-100 rounded-full w-fit">
-                          {place.category}
+                          {place.category === "Kesir" ? "Cevap Yazma" : place.category}
                         </p>
                         <div className="pt-4 flex flex-row justify-between">
                           <p className="text-base">
@@ -584,7 +584,7 @@ export default function Home() {
                       </div>
                       <div className="flex flex-col justify-between mt-4">
                         <p className="px-4 py-1 bg-gray-100 rounded-full w-fit">
-                          {frac.category}
+                          {frac.category === "Kesir" ? "Cevap Yazma" : frac.category}
                         </p>
                         <div className="pt-4 flex flex-row justify-between">
                           <p className="text-base">

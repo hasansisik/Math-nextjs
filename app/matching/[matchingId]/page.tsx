@@ -97,6 +97,7 @@ export default function MatchingPage() {
   const [userAnswers, setUserAnswers] = useState<{ [key: string]: string }>({});
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showResults, setShowResults] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
   const [matchingResults, setMatchingResults] = useState({
     correct: 0,
     incorrect: 0,
@@ -264,9 +265,28 @@ export default function MatchingPage() {
     setShowResults(true);
   }
 
+  function handleDialogClose() {
+    setShowResults(false);
+    router.push('/');
+  }
+
+  function handleConfirmationClose() {
+    setShowConfirmation(false);
+  }
+
+  function handleFinishExam() {
+    setShowConfirmation(true);
+  }
+
+  function handleConfirmFinish() {
+    setShowConfirmation(false);
+    checkResults();
+    setShowResults(true);
+  }
+
   const handleSubmit = () => {
     setTimerActive(false);
-    checkResults();
+    handleFinishExam();
   };
 
   const handleNext = () => {
@@ -281,11 +301,6 @@ export default function MatchingPage() {
     }
   };
 
-  const handleDialogClose = () => {
-    setTimer({ minutes: 0, seconds: 0 }); // Timer'ı sıfırla
-    setShowResults(false);
-    router.push('/');
-  };
 
   const renderQuestionContent = (text: string) => {
     if (text.match(/^https?:\/\//)) {
@@ -438,7 +453,7 @@ export default function MatchingPage() {
             {matchingData.questions.map((_: any, index: number) => (
               <Button
                 key={index}
-                variant="outline"
+                variant={currentQuestionIndex === index ? "default" : "outline"}
                 onClick={() => setCurrentQuestionIndex(index)}
               >
                 {index + 1}
@@ -486,6 +501,25 @@ export default function MatchingPage() {
           </div>
           <DialogFooter>
             <Button onClick={handleDialogClose}>Tamam</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showConfirmation} onOpenChange={handleConfirmationClose}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Sınavı Bitir</DialogTitle>
+            <DialogDescription>
+              Sınavı bitirmek istediğinizden emin misiniz?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleConfirmationClose}>
+              Hayır
+            </Button>
+            <Button onClick={handleConfirmFinish}>
+              Evet
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

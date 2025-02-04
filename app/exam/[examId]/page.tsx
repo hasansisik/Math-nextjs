@@ -30,6 +30,7 @@ export default function ExamPage() {
   const [userAnswers, setUserAnswers] = useState<{ [key: string]: string }>({});
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showResults, setShowResults] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [examResults, setExamResults] = useState({
     correct: 0,
     incorrect: 0,
@@ -191,6 +192,19 @@ export default function ExamPage() {
     }));
   };
 
+  const handleFinishExam = () => {
+    setShowConfirmDialog(true);
+  };
+
+  const handleConfirmFinish = () => {
+    setShowConfirmDialog(false);
+    if (showAnswers) {
+      handleSubmit();
+    } else {
+      setShowAnswers(true);
+    }
+  };
+
   const currentQuestion = examData.questions[currentQuestionIndex];
 
   return (
@@ -215,8 +229,8 @@ export default function ExamPage() {
             </span>
           </div>
         </div>
-        <Button variant="destructive" onClick={() => showAnswers ? handleSubmit() : setShowAnswers(true)}>
-          {showAnswers ? "Sınavı Bitir" : "Sonuçlar"}
+        <Button variant="destructive" onClick={handleFinishExam}>
+          {showAnswers ? "Sınavı Bitir" : "Sınavı Bitir"}
         </Button>
       </div>
 
@@ -270,7 +284,7 @@ export default function ExamPage() {
           <Button
             onClick={
               currentQuestionIndex === examData.questions.length - 1
-                ? () => showAnswers ? handleSubmit() : setShowAnswers(true)
+                ? handleFinishExam
                 : handleNext
             }
             variant={
@@ -280,7 +294,7 @@ export default function ExamPage() {
             }
           >
             {currentQuestionIndex === examData.questions.length - 1
-              ? (showAnswers ? "Sınavı Bitir" : "Sonuçlar")
+              ? (showAnswers ? "Sınavı Bitir" : "Sınavı Bitir")
               : "Sonraki Soru"}
           </Button>
         </div>
@@ -346,6 +360,25 @@ export default function ExamPage() {
           </div>
           <DialogFooter>
             <Button onClick={handleDialogClose}>Tamam</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Emin Misiniz ?</DialogTitle>
+            <DialogDescription>
+              Sınavı bitirmek istediğinizden emin misiniz?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowConfirmDialog(false)}>
+              İptal
+            </Button>
+            <Button onClick={handleConfirmFinish}>
+              Evet, Bitir
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
