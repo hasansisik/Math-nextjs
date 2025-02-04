@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import useSound from "use-sound"; // Yeni import
 import { Card, CardContent} from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -41,8 +41,9 @@ export default function ExamPage() {
   const [timerActive, setTimerActive] = useState(true);
 
   const [playPickupSound] = useSound("/pickup.mp3");
-  const [playCorrectSound] = useSound("/drop.mp3");
-  const [playWrongSound] = useSound("/fail.mp3");
+
+
+  const [showAnswers, setShowAnswers] = useState(false);
 
   useEffect(() => {
     dispatch(getQuestions());
@@ -183,14 +184,7 @@ export default function ExamPage() {
   };
 
   const handleAnswerChange = (value: string) => {
-    const isCorrect = value === examData.questions[currentQuestionIndex].correctAnswer;
-    
-    if (isCorrect) {
-      playCorrectSound();
-    } else {
-      playWrongSound();
-    }
-
+    playPickupSound();
     setUserAnswers(prev => ({
       ...prev,
       [currentQuestionIndex]: value
@@ -221,8 +215,8 @@ export default function ExamPage() {
             </span>
           </div>
         </div>
-        <Button variant="destructive" onClick={handleSubmit}>
-          Sınavı Bitir
+        <Button variant="destructive" onClick={() => showAnswers ? handleSubmit() : setShowAnswers(true)}>
+          {showAnswers ? "Sınavı Bitir" : "Sonuçlar"}
         </Button>
       </div>
 
@@ -251,7 +245,6 @@ export default function ExamPage() {
                   <div 
                     key={optionIndex} 
                     className="flex items-center space-x-2"
-                    onClick={() => playPickupSound()} // Tıklama sesini ekle
                   >
                     <RadioGroupItem
                       value={letters[optionIndex]}
@@ -277,7 +270,7 @@ export default function ExamPage() {
           <Button
             onClick={
               currentQuestionIndex === examData.questions.length - 1
-                ? handleSubmit
+                ? () => showAnswers ? handleSubmit() : setShowAnswers(true)
                 : handleNext
             }
             variant={
@@ -287,7 +280,7 @@ export default function ExamPage() {
             }
           >
             {currentQuestionIndex === examData.questions.length - 1
-              ? "Sınavı Bitir"
+              ? (showAnswers ? "Sınavı Bitir" : "Sonuçlar")
               : "Sonraki Soru"}
           </Button>
         </div>
@@ -296,10 +289,21 @@ export default function ExamPage() {
             {examData.questions.map((_: any, index: number) => (
               <Button
                 key={index}
-                variant={getButtonVariant(index)}
+                variant={
+                  showAnswers 
+                    ? (userAnswers[index] 
+                        ? (userAnswers[index] === examData.questions[index].correctAnswer 
+                            ? "success" 
+                            : "destructive")
+                        : "outline")
+                    : (currentQuestionIndex === index ? "default" : "outline")
+                }
                 onClick={() => setCurrentQuestionIndex(index)}
               >
-                {index + 1}
+                {showAnswers ? 
+                  `${index + 1} - ${userAnswers[index] || '-'}` :
+                  index + 1
+                }
               </Button>
             ))}
           </div>

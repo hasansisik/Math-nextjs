@@ -105,6 +105,7 @@ export default function MatchingPage() {
   });
   const [timer, setTimer] = useState({ minutes: 0, seconds: 0 });
   const [timerActive, setTimerActive] = useState(true);
+  const [shuffledAnswers, setShuffledAnswers] = useState<Array<{index: number, value: string}>>([]);
 
   const [playPickupSound] = useSound("/pickup.mp3");
   const [playCorrectSound] = useSound("/drop.mp3");
@@ -143,6 +144,14 @@ export default function MatchingPage() {
   useEffect(() => {
     if (currentQuestion) {
       setUserAnswers({});
+      // Cevapları ve indexleri birlikte karıştır
+      const shuffled = currentQuestion.correctAnswer
+        .map((value: string, index: number) => ({
+          index,
+          value: value.toString()
+        }))
+        .sort(() => Math.random() - 0.5);
+      setShuffledAnswers(shuffled);
     }
   }, [currentQuestion]);
 
@@ -358,8 +367,8 @@ export default function MatchingPage() {
                       {userAnswers[`drop-${qIndex}`] && (
                         <div className={`p-2 rounded w-full text-center ${
                           parseInt(userAnswers[`drop-${qIndex}`]) === qIndex
-                            ? 'bg-green-100'
-                            : 'bg-red-100'
+                            ? 'bg-green-200'
+                            : 'bg-red-200'
                         }`}>
                           {currentQuestion?.correctAnswer[parseInt(userAnswers[`drop-${qIndex}`])]}
                         </div>
@@ -371,18 +380,27 @@ export default function MatchingPage() {
             </div>
 
             <div className="flex flex-wrap gap-2 mt-4 sticky bottom-4 bg-white p-4 border rounded shadow-lg">
-              {currentQuestion?.correctAnswer.map((answer: string, index: number) => (
-                <Draggable key={index} id={index.toString()} disabled={Object.values(userAnswers).includes(index.toString())}>
+              {shuffledAnswers.map(({ index, value }) => (
+                <Draggable key={index} id={index.toString()}>
                   <div
                     className={`flex items-center justify-center min-w-[200px] h-12 rounded
                       ${
                         Object.values(userAnswers).includes(index.toString())
-                          ? "opacity-50 bg-gray-200 font-bold"
-                          : "bg-blue-500 text-white font-bold"
+                          ? "opacity-50"
+                          : ""
+                      }
+                      ${
+                        Object.entries(userAnswers).some(
+                          ([key, value]) => value === index.toString() && parseInt(key.split('-')[1]) === index
+                        )
+                          ? "bg-green-100 font-bold"
+                        : Object.values(userAnswers).includes(index.toString())
+                          ? "bg-red-100 font-bold"
+                          : "bg-blue-300 font-bold"
                       }
                     `}
                   >
-                    {answer}
+                    {value}
                   </div>
                 </Draggable>
               ))}

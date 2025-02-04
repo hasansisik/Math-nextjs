@@ -16,7 +16,7 @@ const questionTypes = [
   { value: "Çoktan Seçmeli", label: "Çoktan Seçmeli Test",type:"exams" },
   { value: "Eşleştirme", label: "Eşleştirme Soruları",type:"matchings" },
   { value: "Sıralama", label: "Sıralama Soruları",type:"placements" },
-  { value: "Kesir", label: "Kesir Soruları",type:"fractions" },    
+  { value: "Kesir", label: "Cevap Yazma Soruları",type:"fractions" },    
 ]
 
 const baseInitialValues = {
