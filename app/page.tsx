@@ -377,7 +377,7 @@ export default function Home() {
                   <CardHeader>
                     <div className="relative w-full h-32 mb-4">
                       <Image
-                        src="/examBanner3.jpg"
+                        src="/examBanner4.jpg"
                         alt="Course Image"
                         layout="fill"
                         objectFit="cover"
