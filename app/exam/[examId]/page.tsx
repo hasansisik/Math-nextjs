@@ -145,24 +145,6 @@ export default function ExamPage() {
     }
   };
 
-  const getButtonVariant = (index: number) => {
-    const currentAnswer = userAnswers[index];
-    const correctAnswer = examData.questions[index].correctAnswer;
-
-    if (!currentAnswer) {
-      // Henüz cevaplanmamış soru
-      return currentQuestionIndex === index ? "default" : "outline";
-    }
-
-    if (currentAnswer === correctAnswer) {
-      // Doğru cevap verilmiş
-      return "success";
-    } else {
-      // Yanlış cevap verilmiş
-      return "destructive";
-    }
-  };
-
   const renderQuestionContent = (text: string) => {
     const parts = text.split(/(https?:\/\/[^\s]+)/g);
     return parts.map((part, index) => {
