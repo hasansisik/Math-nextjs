@@ -254,7 +254,7 @@ const PlacementPage = () => {
 
   return (
     <div className="flex flex-col m-5">
-      <div className="flex items-center justify-between mx-3">
+      <div className="flex items-center justify-between">
         <div className="flex items-center flex-row">
           <div
             className="p-2 bg-slate-100 mr-3 rounded-sm cursor-pointer hover:bg-slate-200"
@@ -340,7 +340,7 @@ const PlacementPage = () => {
             </div>
 
             {/* Taşınabilir öğeler */}
-            <div className="flex flex-wrap justify-center items-center gap-4 mt-4 sticky bottom-4 bg-white p-4 border rounded shadow-lg w-full">
+            <div className="flex flex-wrap justify-center items-center gap-4 fixed bottom-0 left-0 right-0 bg-white p-4 border-t shadow-lg z-50">
               {items.map((item, index: number) => (
                 <Draggable key={item} id={item.toString()}>
                   <div

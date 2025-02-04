@@ -209,7 +209,7 @@ const FractionPage = () => {
 
   return (
     <div className="flex flex-col m-5">
-      <div className="flex items-center justify-between mx-3">
+      <div className="flex items-center justify-between">
         <div className="flex items-center flex-row">
           <div
             className="p-2 bg-slate-100 mr-3 rounded-sm cursor-pointer hover:bg-slate-200"
