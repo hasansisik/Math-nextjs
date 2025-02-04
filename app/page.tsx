@@ -16,6 +16,7 @@ interface QuestionItem {
   matching?: MatchingType;
   placement?: PlacementType;
   fraction?: FractionType;
+  space?: SpaceType;
 }
 
 interface ExamType {
@@ -31,12 +32,14 @@ interface ExamType {
 interface MatchingType extends ExamType {}
 interface PlacementType extends ExamType {}
 interface FractionType extends ExamType {}
+interface SpaceType extends ExamType {}
 
 interface ProcessedQuestions {
   exams: ExamType[];
   matching: MatchingType[];
   placement: PlacementType[];
   fraction: FractionType[];
+  space: SpaceType[];
 }
 
 export default function Home() {
@@ -67,12 +70,15 @@ export default function Home() {
       if (item.fraction) {
         acc.fraction = [...(acc.fraction || []), item.fraction];
       }
+      if (item.space) {
+        acc.space = [...(acc.space || []), item.space];
+      }
       return acc;
     }, {}) as ProcessedQuestions;
   };
 
   const processedQuestions = questions ? processQuestions(questions) : {} as ProcessedQuestions;
-  const { exams = [], matching = [], placement = [], fraction = [] } = processedQuestions;
+  const { exams = [], matching = [], placement = [], fraction = [], space = [] } = processedQuestions;
 
   if (loading) {
     return (
@@ -360,6 +366,68 @@ export default function Home() {
               ))}
             </div>
           )}
+          {selectedFilter === "space" && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full">
+              {space.map((spaceItem) => (
+                <Card
+                  key={spaceItem._id}
+                  className="flex-1 cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={() => router.push(`/space/${spaceItem._id}`)}
+                >
+                  <CardHeader>
+                    <div className="relative w-full h-32 mb-4">
+                      <Image
+                        src="/examBanner3.jpg"
+                        alt="Course Image"
+                        layout="fill"
+                        objectFit="cover"
+                        className="rounded-lg"
+                      />
+                    </div>
+                    <CardTitle>{spaceItem.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-col">
+                      <div className="flex justify-between">
+                        <div className="flex text-center flex-row gap-4">
+                          <CircularProgress
+                            value={spaceItem.accuracy}
+                            color="#34d399"
+                          />
+                          <div>
+                            <p>Zorluk</p>
+                            <p>{spaceItem.accuracy}%</p>
+                          </div>
+                        </div>
+                        <div className="flex text-center flex-row  gap-2">
+                          <CircularProgress
+                            value={spaceItem.completionRate}
+                            color="#34d399"
+                          />
+                          <div>
+                            <p>Başarı Yüzdesi</p>
+                            <p>{spaceItem.completionRate}%</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex flex-col justify-between mt-4">
+                        <p className="px-4 py-1 bg-gray-100 rounded-full w-fit">
+                          {spaceItem.category === "Kesir" ? "Cevap Yazma" : spaceItem.category}
+                        </p>
+                        <div className="pt-4 flex flex-row justify-between">
+                          <p className="text-base">
+                            Oluşturulma tarihi:{" "}
+                            {format(new Date(spaceItem.createdAt), "dd/MM/yyyy")}
+                          </p>
+                          <p>Soru Sayısı: {spaceItem.questionsCount}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
           {selectedFilter === "all" && (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full">
               {/* Exam Cards */}
@@ -592,6 +660,65 @@ export default function Home() {
                             {format(new Date(frac.createdAt), "dd/MM/yyyy")}
                           </p>
                           <p>Soru Sayısı: {frac.questionsCount}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+              {/* Space Cards */}
+              {space.map((spaceItem) => (
+                <Card
+                  key={spaceItem._id}
+                  className="flex-1 cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={() => router.push(`/space/${spaceItem._id}`)}
+                >
+                  <CardHeader>
+                    <div className="relative w-full h-32 mb-4">
+                      <Image
+                        src="/examBanner4.jpg"
+                        alt="Course Image"
+                        layout="fill"
+                        objectFit="cover"
+                        className="rounded-lg"
+                      />
+                    </div>
+                    <CardTitle>{spaceItem.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-col">
+                      <div className="flex justify-between">
+                        <div className="flex text-center flex-row gap-4">
+                          <CircularProgress
+                            value={spaceItem.accuracy}
+                            color="#34d399"
+                          />
+                          <div>
+                            <p>Zorluk</p>
+                            <p>{spaceItem.accuracy}%</p>
+                          </div>
+                        </div>
+                        <div className="flex text-center flex-row  gap-2">
+                          <CircularProgress
+                            value={spaceItem.completionRate}
+                            color="#34d399"
+                          />
+                          <div>
+                            <p>Başarı Yüzdesi</p>
+                            <p>{spaceItem.completionRate}%</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex flex-col justify-between mt-4">
+                        <p className="px-4 py-1 bg-gray-100 rounded-full w-fit">
+                          {spaceItem.category === "Kesir" ? "Cevap Yazma" : spaceItem.category}
+                        </p>
+                        <div className="pt-4 flex flex-row justify-between">
+                          <p className="text-base">
+                            Oluşturulma tarihi:{" "}
+                            {format(new Date(spaceItem.createdAt), "dd/MM/yyyy")}
+                          </p>
+                          <p>Soru Sayısı: {spaceItem.questionsCount}</p>
                         </div>
                       </div>
                     </div>

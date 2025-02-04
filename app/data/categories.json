@@ -7,23 +7,28 @@
     },
     {
       "id": 2,
-      "name": "Çoktan Seçmeli",
+      "name": "Çoktan Seçmeli Sorular",
       "filter": "exam"
     },
     {
       "id": 3,
-      "name": "Eşleştirme",
+      "name": "Eşleştirme Soruları",
       "filter": "matching"
     },
     {
       "id": 4,
-      "name": "Sıralama",
+      "name": "Sıralama Soruları",
       "filter": "placement"
     },
     {
       "id": 5,
-      "name": "Cevap Yazma",
+      "name": "Cevap Yazma Soruları",
       "filter": "fraction"
+    },
+    {
+      "id": 6,
+      "name": "Boşluk Doldurma Soruları",
+      "filter": "space"
     }
   ]
 }

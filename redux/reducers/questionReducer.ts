@@ -13,6 +13,9 @@ import {
   createPlacement,
   updatePlacement,
   deletePlacement,
+  createSpace,
+  updateSpace,
+  deleteSpace,
 } from "../actions/questionActions";
 
 interface QuestionState {
@@ -209,6 +212,48 @@ export const questionReducer = createReducer(initialState, (builder) => {
       state.message = "Placement question deleted successfully";
     })
     .addCase(deletePlacement.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload as string;
+    })
+
+    // Space Cases
+    .addCase(createSpace.pending, (state) => {
+      state.loading = true;
+    })
+    .addCase(createSpace.fulfilled, (state, action) => {
+      state.loading = false;
+      state.questions.push(action.payload);
+      state.message = "Space question created successfully";
+    })
+    .addCase(createSpace.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload as string;
+    })
+
+    .addCase(updateSpace.pending, (state) => {
+      state.loading = true;
+    })
+    .addCase(updateSpace.fulfilled, (state, action) => {
+      state.loading = false;
+      state.questions = state.questions.map(question =>
+        question._id === action.payload._id ? action.payload : question
+      );
+      state.message = "Space question updated successfully";
+    })
+    .addCase(updateSpace.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload as string;
+    })
+
+    .addCase(deleteSpace.pending, (state) => {
+      state.loading = true;
+    })
+    .addCase(deleteSpace.fulfilled, (state, action) => {
+      state.loading = false;
+      state.questions = state.questions.filter(question => question._id !== action.payload);
+      state.message = "Space question deleted successfully";
+    })
+    .addCase(deleteSpace.rejected, (state, action) => {
       state.loading = false;
       state.error = action.payload as string;
     });

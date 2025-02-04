@@ -63,12 +63,29 @@ export interface PlacementPayload {
   }[];
 }
 
+export interface SpacePayload {
+  title: string;
+  description: string;
+  accuracy: number;
+  completionRate: number;
+  questionsCount: number;
+  questions: {
+    title: string;
+    question: {
+      optionStart: string;
+      optionEnd: string;
+      answer: string;
+    }[];
+  }[];
+}
+
 // Get all questions
 export const getQuestions = createAsyncThunk(
   "question/getAll",
   async (_, thunkAPI) => {
     try {
       const { data } = await axios.get(`${server}/question`);
+      console.log("q111", data.data);  
       return data.data;
     } catch (error: any) {
       return thunkAPI.rejectWithValue(error.response.data.message);
@@ -117,7 +134,6 @@ export const deleteExam = createAsyncThunk(
 export const createMatching = createAsyncThunk(
   "question/createMatching",
   async (payload: MatchingPayload, thunkAPI) => {
-    console.log("payload1", payload)
     try {
       const { data } = await axios.post(`${server}/question/matching`, payload);
       return data.data;
@@ -131,7 +147,6 @@ export const updateMatching = createAsyncThunk(
   "question/updateMatching",
   async ({ id, payload }: { id: string; payload: MatchingPayload }, thunkAPI) => {
     try {
-      console.log("payload2", payload)
       const { data } = await axios.put(`${server}/question/matching/${id}`, payload);
       return data.data;
     } catch (error: any) {
@@ -156,7 +171,6 @@ export const deleteMatching = createAsyncThunk(
 export const createFraction = createAsyncThunk(
   "question/createFraction",
   async (payload: FractionPayload, thunkAPI) => {
-    console.log("payload2", payload)  
     try {
       const { data } = await axios.post(`${server}/question/fraction`, payload);
       return data.data;
@@ -169,7 +183,6 @@ export const createFraction = createAsyncThunk(
 export const updateFraction = createAsyncThunk(
   "question/updateFraction",
   async ({ id, payload }: { id: string; payload: FractionPayload }, thunkAPI) => {
-    console.log("updateFraction", payload)
     try {
       const { data } = await axios.put(`${server}/question/fraction/${id}`, payload);
       return data.data;
@@ -222,6 +235,43 @@ export const deletePlacement = createAsyncThunk(
   async (id: string, thunkAPI) => {
     try {
       await axios.delete(`${server}/question/placement/${id}`);
+      return id;
+    } catch (error: any) {
+      return thunkAPI.rejectWithValue(error.response.data.message);
+    }
+  }
+);
+
+// Space actions
+export const createSpace = createAsyncThunk(
+  "question/createSpace",
+  async (payload: SpacePayload, thunkAPI) => {
+    try {
+      const { data } = await axios.post(`${server}/question/space`, payload);
+      return data.data;
+    } catch (error: any) {
+      return thunkAPI.rejectWithValue(error.response.data.message);
+    }
+  }
+);
+
+export const updateSpace = createAsyncThunk(
+  "question/updateSpace",
+  async ({ id, payload }: { id: string; payload: SpacePayload }, thunkAPI) => {
+    try {
+      const { data } = await axios.put(`${server}/question/space/${id}`, payload);
+      return data.data;
+    } catch (error: any) {
+      return thunkAPI.rejectWithValue(error.response.data.message);
+    }
+  }
+);
+
+export const deleteSpace = createAsyncThunk(
+  "question/deleteSpace",
+  async (id: string, thunkAPI) => {
+    try {
+      await axios.delete(`${server}/question/space/${id}`);
       return id;
     } catch (error: any) {
       return thunkAPI.rejectWithValue(error.response.data.message);

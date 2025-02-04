@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useDispatch } from "react-redux"
-import { createExam, createMatching, createPlacement, createFraction } from "@/redux/actions/questionActions"
+import { createExam, createMatching, createPlacement, createFraction, createSpace } from "@/redux/actions/questionActions"
 import { useToast } from "@/hooks/use-toast"
 import { Formik, Form, Field, FieldArray } from 'formik'
 import { X } from "lucide-react"
@@ -16,7 +16,8 @@ const questionTypes = [
   { value: "Çoktan Seçmeli", label: "Çoktan Seçmeli Test",type:"exams" },
   { value: "Eşleştirme", label: "Eşleştirme Soruları",type:"matchings" },
   { value: "Sıralama", label: "Sıralama Soruları",type:"placements" },
-  { value: "Kesir", label: "Cevap Yazma Soruları",type:"fractions" },    
+  { value: "Kesir", label: "Cevap Yazma Soruları",type:"fractions" },
+  { value: "Boşluk", label: "Boşluk Doldurma Soruları",type:"spaces" },    
 ]
 
 const baseInitialValues = {
@@ -69,6 +70,18 @@ const getInitialValues = (type: string) => {
               B: "",
               C: ""
             },
+            answer: ""
+          }]
+        }]
+      }
+    case "spaces":
+      return {
+        ...baseInitialValues,
+        questions: [{
+          title: "",
+          question: [{
+            optionStart: "",
+            optionEnd: "",
             answer: ""
           }]
         }]
@@ -158,6 +171,22 @@ export default function TestEklePage() {
             }))
           }))
         };
+      } else if (selectedType === "spaces") {
+        formattedValues = {
+          title: values.title,
+          description: values.description,
+          accuracy: values.accuracy,
+          completionRate: values.completionRate,
+          questionsCount: values.questions.length,
+          questions: values.questions.map((q: any) => ({
+            title: q.title || "",
+            question: q.question.map((space: any) => ({
+              optionStart: space.optionStart || "",
+              optionEnd: space.optionEnd || "",
+              answer: space.answer || ""
+            }))
+          }))
+        };
       } else {
         formattedValues = {
           title: values.title,
@@ -189,6 +218,9 @@ export default function TestEklePage() {
           break;
         case "fractions":
           actionResult = await dispatch(createFraction(formattedValues));
+          break;
+        case "spaces":
+          actionResult = await dispatch(createSpace(formattedValues));
           break;
         default:
           console.error("Unknown type:", selectedType);
@@ -433,6 +465,76 @@ export default function TestEklePage() {
           </div>
         )
 
+      case "spaces":
+        return (
+          <div>
+            <div className="col-span-2">
+              <label className="block text-sm font-medium mb-1">Soru Başlığı</label>
+              <Field
+                name={`questions.${index}.title`}
+                as={Input}
+                placeholder="Örnek: 1) Aşağıdaki cümlelerdeki boşlukları doldurunuz"
+              />
+            </div>
+            <FieldArray name={`questions.${index}.question`}>
+              {({ push: pushQuestion, remove: removeQuestion }: any) => (
+                <div className="space-y-4 mt-4">
+                  {Array.isArray(values.questions[index].question) && values.questions[index].question.map((_: any, spaceIndex: number) => (
+                    <div key={spaceIndex} className="grid gap-6 md:grid-cols-2 p-4 border rounded-lg relative">
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                        onClick={() => removeQuestion(spaceIndex)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                      <div className="col-span-2">
+                        <label className="block text-sm font-medium mb-1">Boşluktan Önceki Metin</label>
+                        <Field
+                          name={`questions.${index}.question.${spaceIndex}.optionStart`}
+                          as={Input}
+                          placeholder="Örnek: Matematik, sayıları ve"
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm font-medium mb-1">Boşluktan Sonraki Metin</label>
+                        <Field
+                          name={`questions.${index}.question.${spaceIndex}.optionEnd`}
+                          as={Input}
+                          placeholder="Örnek: inceleyen bir bilim dalıdır."
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm font-medium mb-1">Doğru Cevap</label>
+                        <Field
+                          name={`questions.${index}.question.${spaceIndex}.answer`}
+                          as={Input}
+                          placeholder="Boşluğa gelecek doğru cevabı giriniz..."
+                        />
+                      </div>
+                    </div>
+                  ))}
+                  <div className="flex justify-end">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => pushQuestion({
+                        optionStart: "",
+                        optionEnd: "",
+                        answer: ""
+                      })}
+                    >
+                      Yeni Boşluk Ekle
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </FieldArray>
+          </div>
+        )
+
       default:
         return null
     }
@@ -566,6 +668,15 @@ export default function TestEklePage() {
                                     B: "",
                                     C: ""
                                   },
+                                  answer: ""
+                                }]
+                              })
+                            } else if (selectedType === "spaces") {
+                              push({
+                                title: "",
+                                question: [{
+                                  optionStart: "",
+                                  optionEnd: "",
                                   answer: ""
                                 }]
                               })
