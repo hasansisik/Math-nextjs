@@ -1,7 +1,6 @@
 "use client";
-import { Usable } from "react";
-import { AlarmClock, AlignVerticalJustifyCenter, X,Loader2 } from "lucide-react";
-import { useState, useEffect, use } from "react";
+import { AlarmClock, AlignHorizontalSpaceAround, X,Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useRouter, usePathname } from "next/navigation";
@@ -19,52 +18,48 @@ import { AppDispatch, RootState } from "@/redux/store";
 import { useDispatch, useSelector } from "react-redux";
 
 interface Question {
+  optionStart: string;
+  optionEnd: string;
   answer: string;
-  parts: {
-    A: string;
-    B: string;
-    C: string;
-  };
 }
 
-interface FractionQuestion {
-  question: Question[];
+interface SpaceQuestion {
   title: string;
+  question: Question[];
 }
 
-interface Fraction {
+interface Space {
   _id: string;
-  questions: FractionQuestion[];
+  questions: SpaceQuestion[];
   title: string;
 }
 
 interface QuestionData {
-  fraction: Fraction;
+  space: Space;
 }
 
-const FractionPage = () => {
+const SpacePage = () => {
   const router = useRouter();
   const pathname = usePathname();
-  const fractionId = pathname.split('/fraction/')[1];
+  const spaceId = pathname.split('/space/')[1];
   const { questions } = useSelector((state: RootState) => state.question);
   const dispatch = useDispatch<AppDispatch>();
 
-  const fractionData = questions?.find((q: QuestionData) => 
-    q.fraction && q.fraction._id === fractionId
-  )?.fraction;
+  const spaceData = questions?.find((q: QuestionData) => 
+    q.space && q.space._id === spaceId
+  )?.space;
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showResults, setShowResults] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
-  const [matchResults, setMatchResults] = useState({
+  const [results, setResults] = useState({
     correct: 0,
     incorrect: 0,
     empty: 0,
-    totalPoints: 0,
   });
   const [timer, setTimer] = useState({ minutes: 0, seconds: 0 });
   const [timerActive, setTimerActive] = useState(true);
-  const [userAnswers, setUserAnswers] = useState<{ [key: string]: { numerator: string; denominator: string } }>({});
+  const [userAnswers, setUserAnswers] = useState<{ [key: string]: string }>({});
   const [playCorrectSound] = useSound("/drop.mp3");
   const [playWrongSound] = useSound("/pickup.mp3");
 
@@ -72,22 +67,21 @@ const FractionPage = () => {
     dispatch(getQuestions());
   }, [dispatch]);
 
-  // Timer effect
   useEffect(() => {
     let interval: NodeJS.Timeout;
 
     if (timerActive) {
       interval = setInterval(() => {
-        setTimer((prev) => {
-          const newSeconds = prev.seconds + 1;
+        setTimer((prevTimer) => {
+          const newSeconds = prevTimer.seconds + 1;
           if (newSeconds === 60) {
             return {
-              minutes: prev.minutes + 1,
+              minutes: prevTimer.minutes + 1,
               seconds: 0,
             };
           }
           return {
-            ...prev,
+            ...prevTimer,
             seconds: newSeconds,
           };
         });
@@ -101,7 +95,7 @@ const FractionPage = () => {
     };
   }, [timerActive]);
 
-  if (!fractionData) {
+  if (!spaceData) {
     return (
       <div className="flex flex-1 items-center justify-center flex-col gap-2">
         <Loader2 className="h-12 w-12 animate-spin text-green-500" />
@@ -110,80 +104,48 @@ const FractionPage = () => {
     );  
   }
 
-  const handleAnswerChange = (index: number, part: string, value: string) => {
+  const handleAnswerChange = (index: number, value: string) => {
     const newAnswers = {
       ...userAnswers,
-      [index]: {
-        ...userAnswers[index],
-        [part]: value
-      }
+      [index]: value
     };
     setUserAnswers(newAnswers);
 
-    // Get correct answer
-    const answer = fractionData.questions[currentQuestionIndex].question[index].answer;
-    const [correctNumerator, correctDenominator] = answer.split('/');
+    const answer = spaceData.questions[currentQuestionIndex].question[index].answer;
     
-    // Check if the current input matches the correct answer
-    if (part === "numerator" && value === correctNumerator) {
-      playCorrectSound();
-    } else if (part === "denominator" && value === correctDenominator) {
+    if (value === answer) {
       playCorrectSound();
     } else if (value !== "") {
       playWrongSound();
     }
   };
 
-  const getInputStyle = (index: number, part: "numerator" | "denominator") => {
-    const answer = fractionData.questions[currentQuestionIndex].question[index].answer;
-    const [correctNumerator, correctDenominator] = answer.split('/');
-    const userAnswer = userAnswers[index]?.[part];
+  const getInputStyle = (index: number) => {
+    const answer = spaceData.questions[currentQuestionIndex].question[index].answer;
+    const userAnswer = userAnswers[index];
 
     if (!userAnswer) return "border-gray-400";
-
-    if (part === "numerator") {
-      return userAnswer === correctNumerator ? "border-green-500 bg-green-50" : "border-red-500 bg-red-50";
-    } else {
-      return userAnswer === correctDenominator ? "border-green-500 bg-green-50" : "border-red-500 bg-red-50";
-    }
+    return userAnswer === answer ? "border-green-500 bg-green-50" : "border-red-500 bg-red-50";
   };
 
   const handleSubmit = () => {
     setTimerActive(false);
-    handleFinishExam();
-  };
-
-  function handleDialogClose() {
-    setShowResults(false);
-    router.push('/');
-  }
-
-  function handleConfirmationClose() {
-    setShowConfirmation(false);
-  }
-
-  function handleFinishExam() {
-    setShowConfirmation(true);
-  }
-
-  function handleConfirmFinish() {
-    setShowConfirmation(false);
     checkResults();
     setShowResults(true);
-  }
+  };
 
   const checkResults = () => {
     let correct = 0;
     let incorrect = 0;
     let empty = 0;
 
-    fractionData.questions.forEach((question: FractionQuestion) => {
-      question.question.forEach((q: Question, index: number) => {
-        const userAnswer = userAnswers[index];
-        const [correctNumerator, correctDenominator] = q.answer.split('/');
-        
-        if (userAnswer?.numerator || userAnswer?.denominator) {
-          if (userAnswer.numerator === correctNumerator && userAnswer.denominator === correctDenominator) {
+    spaceData.questions.forEach((questionGroup: SpaceQuestion) => {
+      questionGroup.question.forEach((q: Question) => {
+        const userAnswer = userAnswers[correct + incorrect + empty];
+        const correctAnswer = q.answer;
+
+        if (userAnswer) {
+          if (userAnswer === correctAnswer) {
             correct++;
           } else {
             incorrect++;
@@ -194,16 +156,10 @@ const FractionPage = () => {
       });
     });
 
-    // Her doğru 5 puan, her 3 yanlış 1 doğruyu götürür
-    const canceledCorrects = Math.floor(incorrect / 3);
-    const effectiveCorrects = Math.max(0, correct - canceledCorrects);
-    const totalPoints = effectiveCorrects * 5;
-    
-    setMatchResults({
+    setResults({
       correct,
       incorrect,
       empty,
-      totalPoints,
     });
   };
 
@@ -232,61 +188,41 @@ const FractionPage = () => {
         <div className="flex justify-center w-full xs:w-auto">
           <Button 
             variant="destructive" 
-            onClick={handleSubmit}
+            onClick={() => setShowConfirmation(true)}
           >
             Sınavı Bitir
           </Button>
         </div>
       </div>
 
-      <div className="flex flex-col mx-auto pt-10  gap-2">
+      <div className="flex flex-col mx-auto pt-10 gap-2">
         <div className="flex flex-row items-center gap-2">
           <div className="p-1 bg-primary rounded-sm">
-            <AlignVerticalJustifyCenter color="white" />
+            <AlignHorizontalSpaceAround color="white" />
           </div>
-          <p className="font-bold">{fractionData.title}</p>
+          <p className="font-bold">{spaceData.title}</p>
           <p>
-            {currentQuestionIndex + 1} ile {fractionData.questions.length}
+            {currentQuestionIndex + 1} ile {spaceData.questions.length}
           </p>
         </div>
 
         <h2 className="pt-5 font-bold text-lg">
-          {fractionData.questions[currentQuestionIndex].title}
+          {spaceData.questions[currentQuestionIndex].title}
         </h2>
-        <p className="text-neutral-500">
-          Sürükle bırak yaparak sorular ve cevaplarını eşleştiriniz.
-        </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
-          {fractionData.questions[currentQuestionIndex].question.map((q: Question, index: number) => (
-            <div key={index} className="bg-white p-6 rounded-lg border shadow-sm flex items-center justify-center h-[200px]">
-              <div className="flex items-center justify-center gap-4">
-                <div className="flex items-center gap-1">
-                  <span className="text-xl font-medium">{q.parts.A}</span>
-                  <div className="flex flex-col items-center mx-1">
-                    <span className="text-lg">{q.parts.C}</span>
-                    <div className="w-6 h-0.5 bg-black my-1"></div>
-                    <span className="text-lg">{q.parts.B}</span>
-                  </div>
-                </div>
-                <span className="mx-3 text-xl">=</span>
-                <div className="flex flex-col items-center">
-                  <input
-                    type="text"
-                    className={`w-16 h-10 border-2 border-dashed rounded-lg text-center text-lg focus:ring-2 focus:ring-primary/20 transition-colors ${getInputStyle(index, "numerator")}`}
-                    value={userAnswers[index]?.numerator || ""}
-                    onChange={(e) => handleAnswerChange(index, "numerator", e.target.value)}
-                    placeholder="?"
-                  />
-                  <div className="w-16 h-0.5 bg-black my-2"></div>
-                  <input
-                    type="text"
-                    className={`w-16 h-10 border-2 border-dashed rounded-lg text-center text-lg focus:ring-2 focus:ring-primary/20 transition-colors ${getInputStyle(index, "denominator")}`}
-                    value={userAnswers[index]?.denominator || ""}
-                    onChange={(e) => handleAnswerChange(index, "denominator", e.target.value)}
-                    placeholder="?"
-                  />
-                </div>
+          {spaceData.questions[currentQuestionIndex].question.map((q: Question, index: number) => (
+            <div key={index} className="bg-white p-6 rounded-lg border shadow-sm flex items-center justify-center">
+              <div className="flex items-center gap-2">
+                <span>{q.optionStart}</span>
+                <input
+                  type="text"
+                  className={`w-20 h-10 border-2 border-dashed rounded-lg text-center text-lg focus:ring-2 focus:ring-primary/20 transition-colors ${getInputStyle(index)}`}
+                  value={userAnswers[index] || ""}
+                  onChange={(e) => handleAnswerChange(index, e.target.value)}
+                  placeholder="?"
+                />
+                <span>{q.optionEnd}</span>
               </div>
             </div>
           ))}
@@ -301,17 +237,17 @@ const FractionPage = () => {
           </Button>
           <Button
             onClick={
-              currentQuestionIndex === fractionData.questions.length - 1
-                ? handleSubmit
+              currentQuestionIndex === spaceData.questions.length - 1
+                ? () => setShowConfirmation(true)
                 : () => setCurrentQuestionIndex((prev) => prev + 1)
             }
             variant={
-              currentQuestionIndex === fractionData.questions.length - 1
+              currentQuestionIndex === spaceData.questions.length - 1
                 ? "destructive"
                 : "default"
             }
           >
-            {currentQuestionIndex === fractionData.questions.length - 1
+            {currentQuestionIndex === spaceData.questions.length - 1
               ? "Sınavı Bitir"
               : "Sonraki Soru"}
           </Button>
@@ -319,7 +255,7 @@ const FractionPage = () => {
 
         <ScrollArea className="my-5">
           <div className="grid grid-cols-10 gap-2">
-            {fractionData.questions.map((_: any, index: number) => (
+            {spaceData.questions.map((_: any, index: number) => (
               <Button
                 key={index}
                 variant={currentQuestionIndex === index ? "default" : "outline"}
@@ -332,62 +268,59 @@ const FractionPage = () => {
         </ScrollArea>
       </div>
 
-      <Dialog open={showResults} onOpenChange={handleDialogClose}>
+      <Dialog open={showResults} onOpenChange={setShowResults}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Sınav Sonucu</DialogTitle>
-            <DialogDescription className="text-primary font-medium mt-2">
-              Doğrular 5 puan ve 3 yanlış 1 doğruyu götürüyor
-            </DialogDescription>
           </DialogHeader>
-          <div className="pt-4 space-y-3">
-            <DialogDescription asChild>
-              <div className="space-y-3">
+          <div className="py-4">
+            <div className="space-y-4">
+              <div className="flex flex-col">
                 <div className="flex justify-between items-center py-2 border-b">
                   <span>Toplam Soru:</span>
                   <span className="font-medium">
-                    {fractionData.questions.reduce((acc: number, q: FractionQuestion) => acc + q.question.length, 0)}
+                    {spaceData.questions.reduce((acc: number, q: SpaceQuestion) => acc + q.question.length, 0)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b">
-                  <span>Doğru Sayısı:</span>
-                  <span className="font-medium text-green-600">{matchResults.correct}</span>
+                  <span>Doğru:</span>
+                  <span className="font-medium text-green-600">
+                    {results.correct}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b">
-                  <span>Yanlış Sayısı:</span>
-                  <span className="font-medium text-red-600">{matchResults.incorrect}</span>
+                  <span>Yanlış:</span>
+                  <span className="font-medium text-red-600">
+                    {results.incorrect}
+                  </span>
                 </div>
-                <div className="flex justify-between items-center py-2 border-b">
-                  <span>Boş Sayısı:</span>
-                  <span className="font-medium text-gray-600">{matchResults.empty}</span>
-                </div>
-                <div className="flex justify-between items-center py-2 bg-primary/10 px-4 rounded-lg">
-                  <span className="font-bold">Toplam Puan:</span>
-                  <span className="font-bold text-primary">{matchResults.totalPoints}</span>
+                <div className="flex justify-between items-center py-2">
+                  <span>Boş:</span>
+                  <span className="font-medium text-gray-600">{results.empty}</span>
                 </div>
               </div>
-            </DialogDescription>
+            </div>
           </div>
           <DialogFooter>
-            <Button onClick={handleDialogClose}>Tamam</Button>
+            <Button onClick={() => router.push('/')}>Tamam</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      <Dialog open={showConfirmation} onOpenChange={handleConfirmationClose}>
+      <Dialog open={showConfirmation} onOpenChange={setShowConfirmation}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Sınavı Bitir</DialogTitle>
+            <DialogTitle>Sınavı bitirmek istediğinize emin misiniz?</DialogTitle>
             <DialogDescription>
-              Sınavı bitirmek istediğinizden emin misiniz?
+              Bu işlem geri alınamaz.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={handleConfirmationClose}>
-              Hayır
+            <Button variant="outline" onClick={() => setShowConfirmation(false)}>
+              İptal
             </Button>
-            <Button onClick={handleConfirmFinish}>
-              Evet
+            <Button onClick={handleSubmit}>
+              Evet, Bitir
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -396,4 +329,4 @@ const FractionPage = () => {
   );
 };
 
-export default FractionPage;
+export default SpacePage;

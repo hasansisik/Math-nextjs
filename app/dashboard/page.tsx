@@ -117,7 +117,22 @@ export default function TestlerimPage() {
                     >
                       <TableCell>{test.title}</TableCell>
                       <TableCell>
-                        <Badge variant="outline">{test.category || test.title}</Badge>
+                        <Badge variant="outline">
+                          {(() => {
+                            switch (test.category) {
+                              case 'Eşleştirme':
+                                return 'Eşleştirme Soruları';
+                              case 'Çoktan seçmeli':
+                                return 'Çoktan Seçmeli Sorular';
+                              case 'Kesir':
+                                return 'Cevap Yazma Soruları';
+                              case 'Sıralama':
+                                return 'Sıralama Soruları';
+                              default:
+                                return test.category || test.title;
+                            }
+                          })()}
+                        </Badge>
                       </TableCell>
                       <TableCell>{test.questionsCount}</TableCell>
                       <TableCell>{test.accuracy}%</TableCell>
