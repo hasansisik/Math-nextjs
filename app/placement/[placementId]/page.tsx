@@ -1,11 +1,10 @@
 "use client";
-import { use, Usable } from "react";
 import { AlarmClock, AlignHorizontalDistributeStart, X ,Loader2} from "lucide-react";
 import {
   DndContext,
   closestCenter,
-  KeyboardSensor,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   DragEndEvent,
@@ -32,12 +31,15 @@ import { useDispatch, useSelector } from "react-redux";
 function Draggable({
   id,
   children,
+  disabled = false,
 }: {
   id: string;
   children: React.ReactNode;
+  disabled?: boolean;
 }) {
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
     id: id,
+    disabled,
   });
 
   const style = transform
@@ -47,25 +49,13 @@ function Draggable({
     : undefined;
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...listeners}
-      {...attributes}
-      className="cursor-move"
-    >
+    <div ref={setNodeRef} style={style} {...listeners} {...attributes}>
       {children}
     </div>
   );
 }
 
-function Droppable({
-  id,
-  children,
-}: {
-  id: string;
-  children: React.ReactNode;
-}) {
+function Droppable({ id, children }: { id: string; children: React.ReactNode }) {
   const { isOver, setNodeRef } = useDroppable({
     id: id,
   });
@@ -81,7 +71,7 @@ function Droppable({
   );
 }
 
-const MatchingPage = () => {
+const PlacementPage = () => {
   const router = useRouter();
   const pathname = usePathname();
   const placementId = pathname.split('/placement/')[1];
@@ -103,8 +93,17 @@ const MatchingPage = () => {
   const placement = questions?.find((q: any) => q.placement?._id === placementId)?.placement;
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor)
+    useSensor(MouseSensor, {
+      activationConstraint: {
+        distance: 10, // Require the mouse to move 10px before activating
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 250, // Require the finger to be held down for 250ms before activating
+        tolerance: 5, // Allow the finger to move 5px during the delay
+      },
+    })
   );
   const [playPickupSound] = useSound("/pickup.mp3");
   const [playDropSound] = useSound("/drop.mp3");
@@ -118,7 +117,7 @@ const MatchingPage = () => {
   useEffect(() => {
     if (placement) {
       const shuffledItems = [...placement.questions[currentQuestionIndex].correctAnswer]
-        .map(String)
+        .map(value => value.toString())
         .sort(() => 0.5 - Math.random());
       setItems(shuffledItems);
       setDroppedItems({}); // Reset droppedItems when question changes
@@ -196,18 +195,17 @@ const MatchingPage = () => {
   const handleSubmit = () => {
     setTimerActive(false);
     const currentQuestion = placement.questions[currentQuestionIndex];
-    const correctOrder = currentQuestion.correctAnswer.map(String);
-    const totalQuestions = correctOrder.length;
+    const correctOrder = currentQuestion.correctAnswer.map(value => value.toString());
     
     let correct = 0;
     let incorrect = 0;
     let empty = 0;
 
     // Check each position for correctness
-    correctOrder.forEach((correctAnswer: string, index: number) => {
-      const droppedItem = droppedItems[correctAnswer];
+    correctOrder.forEach((correctAnswer: string | number) => {
+      const droppedItem = droppedItems[correctAnswer.toString()];
       if (droppedItem) {
-        if (droppedItem === correctAnswer) {
+        if (droppedItem === correctAnswer.toString()) {
           correct++;
         } else {
           incorrect++;
@@ -230,12 +228,6 @@ const MatchingPage = () => {
     });
 
     setShowResults(true);
-  };
-
-  const handleDialogClose = () => {
-    setTimer({ minutes: 0, seconds: 0 }); 
-    setShowResults(false);
-    router.push("/");
   };
 
   return (
@@ -294,20 +286,20 @@ const MatchingPage = () => {
               {/* Yuva alanı */}
               <div className="flex flex-wrap sm:justify-start justify-center gap-4 mb-4">
                 {placement.questions[currentQuestionIndex].correctAnswer.map(
-                  (correctAnswer: string, index: number) => (
+                  (correctAnswer: string | number, index: number) => (
                     <div key={index} className="flex items-center">
-                      <Droppable id={correctAnswer}>
-                        {droppedItems[correctAnswer] && (
+                      <Droppable id={correctAnswer.toString()}>
+                        {droppedItems[correctAnswer.toString()] && (
                           <div
                             className={`p-2 w-full h-full text-center rounded-full
                         ${
-                          droppedItems[correctAnswer] ===
-                          correctAnswer
+                          droppedItems[correctAnswer.toString()] ===
+                          correctAnswer.toString()
                             ? "bg-green-200"
                             : "bg-red-200"
                         }`}
                           >
-                            {droppedItems[correctAnswer]}
+                            {droppedItems[correctAnswer.toString()]}
                           </div>
                         )}
                       </Droppable>
@@ -328,23 +320,23 @@ const MatchingPage = () => {
             {/* Taşınabilir öğeler */}
             <div className="flex flex-wrap justify-center items-center gap-4 mt-4 sticky bottom-4 bg-white p-4 border rounded shadow-lg w-full">
               {items.map((item, index: number) => (
-                <Draggable key={item} id={item}>
+                <Draggable key={item} id={item.toString()}>
                   <div
                     className={`
                     flex items-center justify-center w-[200px] h-12 rounded-full
                     ${
-                      Object.values(droppedItems).includes(item)
+                      Object.values(droppedItems).includes(item.toString())
                         ? "opacity-50"
                         : ""
                     }
                     ${
                       Object.entries(droppedItems).some(
-                        ([key, value]) => value === item && key === item
+                        ([key, value]) => value === item.toString() && key === item.toString()
                       )
-                        ? "bg-green-200" // doğru yere yerleştirilmiş
-                        : Object.values(droppedItems).includes(item)
-                        ? "bg-red-200"   // yanlış yere yerleştirilmiş
-                        : "bg-blue-100"  // henüz yerleştirilmemiş
+                        ? "bg-green-200 font-bold" 
+                        : Object.values(droppedItems).includes(item.toString())
+                        ? "bg-red-200 font-bold"   
+                        : "bg-orange-300 font-bold" 
                     }
                   `}
                   >
@@ -442,4 +434,4 @@ const MatchingPage = () => {
   );
 };
 
-export default MatchingPage;
+export default PlacementPage;

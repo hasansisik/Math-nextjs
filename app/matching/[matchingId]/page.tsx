@@ -9,8 +9,8 @@ import {
 import {
   DndContext,
   closestCenter,
-  KeyboardSensor,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   DragEndEvent,
@@ -34,6 +34,22 @@ import {
 import { getQuestions } from "@/redux/actions/questionActions";
 import { AppDispatch, RootState } from "@/redux/store";
 import { useDispatch, useSelector } from "react-redux";
+
+const dragStyles = `
+  .draggable-element * {
+    pointer-events: none;
+  }
+  .draggable-element:active {
+    cursor: grabbing !important;
+  }
+`;
+
+// Add style tag to head
+if (typeof document !== 'undefined') {
+  const styleTag = document.createElement('style');
+  styleTag.innerHTML = dragStyles;
+  document.head.appendChild(styleTag);
+}
 
 // Draggable component outside the main component
 function Draggable({ id, children, disabled = false }: { id: string; children: React.ReactNode; disabled?: boolean }) {
@@ -95,8 +111,17 @@ export default function MatchingPage() {
   const [playWrongSound] = useSound("/fail.mp3");
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor)
+    useSensor(MouseSensor, {
+      activationConstraint: {
+        distance: 10, // Require the mouse to move 10px before activating
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 250, // Require the finger to be held down for 250ms before activating
+        tolerance: 5, // Allow the finger to move 5px during the delay
+      },
+    })
   );
 
   const matchingData = useMemo(() => {
@@ -352,8 +377,8 @@ export default function MatchingPage() {
                     className={`flex items-center justify-center min-w-[200px] h-12 rounded
                       ${
                         Object.values(userAnswers).includes(index.toString())
-                          ? "opacity-50 bg-gray-100"
-                          : "bg-blue-100"
+                          ? "opacity-50 bg-gray-200 font-bold"
+                          : "bg-blue-500 text-white font-bold"
                       }
                     `}
                   >
