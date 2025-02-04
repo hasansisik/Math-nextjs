@@ -85,7 +85,6 @@ export const getQuestions = createAsyncThunk(
   async (_, thunkAPI) => {
     try {
       const { data } = await axios.get(`${server}/question`);
-      console.log("q111", data.data);  
       return data.data;
     } catch (error: any) {
       return thunkAPI.rejectWithValue(error.response.data.message);
@@ -259,6 +258,7 @@ export const updateSpace = createAsyncThunk(
   "question/updateSpace",
   async ({ id, payload }: { id: string; payload: SpacePayload }, thunkAPI) => {
     try {
+      console.log("updateSpace", payload)
       const { data } = await axios.put(`${server}/question/space/${id}`, payload);
       return data.data;
     } catch (error: any) {

@@ -13,7 +13,7 @@ import { Edit, EllipsisVertical, Trash } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { deleteExam, deleteMatching, deleteFraction, deletePlacement, getQuestions } from '@/redux/actions/questionActions';
+import { deleteExam, deleteMatching, deleteFraction, deletePlacement, deleteSpace, getQuestions } from '@/redux/actions/questionActions';
 import { toast } from '@/hooks/use-toast';
 import { AppDispatch } from "@/redux/store";
 
@@ -43,6 +43,9 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
           break;
         case 'Sıralama':
           await dispatch(deletePlacement(data._id));
+          break;
+        case 'Boşluk Doldurma':
+          await dispatch(deleteSpace(data._id));
           break;
         default:
           throw new Error('Invalid category');

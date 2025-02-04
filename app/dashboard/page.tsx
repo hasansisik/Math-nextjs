@@ -45,6 +45,7 @@ export default function TestlerimPage() {
       if (item.matching) allTests.push(item.matching);
       if (item.placement) allTests.push(item.placement);
       if (item.fraction) allTests.push(item.fraction);
+      if (item.space) allTests.push(item.space);
     });
     return allTests;
   };

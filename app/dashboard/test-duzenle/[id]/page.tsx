@@ -27,6 +27,7 @@ import {
   updateMatching,
   updatePlacement,
   updateFraction,
+  updateSpace,
 } from "@/redux/actions/questionActions";
 import { usePathname } from "next/navigation";
 
@@ -40,7 +41,6 @@ export default function TestDuzenlePage() {
   const { toast } = useToast();
   const pathname = usePathname();
   const id = pathname.split("/test-duzenle/")[1];
-  console.log("id1", id);
 
   const test = tests?.find((item) => {
     if (item.exams && item.exams._id === id) {
@@ -55,11 +55,14 @@ export default function TestDuzenlePage() {
     if (item.fraction && item.fraction._id === id) {
       return item.fraction;
     }
+    if (item.space && item.space._id === id) {
+      return item.space;
+    }
     return false;
   });
 
   const testData =
-    test?.exams || test?.matching || test?.placement || test?.fraction;
+    test?.exams || test?.matching || test?.placement || test?.fraction || test?.space;
 
   useEffect(() => {
     if (testData) {
@@ -68,6 +71,7 @@ export default function TestDuzenlePage() {
       else if (test?.matching) setSelectedType("matchings");
       else if (test?.placement) setSelectedType("placements");
       else if (test?.fraction) setSelectedType("fractions");
+      else if (test?.space) setSelectedType("spaces");
     }
   }, [testData, test]);
 
@@ -136,6 +140,22 @@ export default function TestDuzenlePage() {
             })),
           })),
         };
+      } else if (selectedType === "spaces") {
+        formattedValues = {
+          title: values.title,
+          description: values.description,
+          accuracy: values.accuracy,
+          completionRate: values.completionRate,
+          questionsCount: values.questions.length,
+          questions: values.questions.map((q: any) => ({
+            title: q.title || "",
+            question: q.question.map((space: any) => ({
+              optionStart: space.optionStart || "",
+              optionEnd: space.optionEnd || "",
+              answer: space.answer || "",
+            })),
+          })),
+        };
       } else {
         formattedValues = {
           title: values.title,
@@ -154,24 +174,19 @@ export default function TestDuzenlePage() {
       let actionResult;
       switch (selectedType) {
         case "exams":
-          actionResult = await dispatch(
-            updateExam({ id, payload: formattedValues })
-          );
+          actionResult = await dispatch(updateExam({ id, payload: formattedValues }));
           break;
         case "matchings":
-          actionResult = await dispatch(
-            updateMatching({ id, payload: formattedValues })
-          );
+          actionResult = await dispatch(updateMatching({ id, payload: formattedValues }));
           break;
         case "placements":
-          actionResult = await dispatch(
-            updatePlacement({ id, payload: formattedValues })
-          );
+          actionResult = await dispatch(updatePlacement({ id, payload: formattedValues }));
           break;
         case "fractions":
-          actionResult = await dispatch(
-            updateFraction({ id, payload: formattedValues })
-          );
+          actionResult = await dispatch(updateFraction({ id, payload: formattedValues }));
+          break;
+        case "spaces":
+          actionResult = await dispatch(updateSpace({ id, payload: formattedValues }));
           break;
         default:
           console.error("Unknown type:", selectedType);
@@ -208,13 +223,13 @@ export default function TestDuzenlePage() {
       return (
         <div>
           <div className="col-span-2">
-              <label className="block text-sm font-medium mb-1">Soru Başlığı</label>
-              <Field
-                name={`questions.${index}.title`}
-                as={Input}
-                placeholder="Örnek: 1) Aşağıdaki verilen işlemlerini sonuçları ile eşleştiriniz"
-              />
-            </div>
+            <label className="block text-sm font-medium mb-1">Soru Başlığı</label>
+            <Field
+              name={`questions.${index}.title`}
+              as={Input}
+              placeholder="Örnek: 1) Aşağıdaki verilen işlemlerini sonuçları ile eşleştiriniz"
+            />
+          </div>
           <FieldArray name={`questions.${index}.question`}>
             {({ push: pushQuestion, remove: removeQuestion }: any) => (
               <div className="space-y-4 mt-4">
@@ -474,6 +489,90 @@ export default function TestDuzenlePage() {
           </div>
         );
 
+      case "spaces":
+        return (
+          <div>
+            <div className="col-span-2">
+              <label className="block text-sm font-medium mb-1">Soru Başlığı</label>
+              <Field
+                name={`questions.${index}.title`}
+                as={Input}
+                placeholder="Örnek: 1) Aşağıdaki cümlelerdeki boşlukları doldurunuz"
+              />
+            </div>
+            <FieldArray name={`questions.${index}.question`}>
+              {({ push: pushQuestion, remove: removeQuestion }: any) => (
+                <div className="space-y-4 mt-4">
+                  {Array.isArray(values.questions[index].question) &&
+                    values.questions[index].question.map(
+                      (_: any, spaceIndex: number) => (
+                        <div
+                          key={spaceIndex}
+                          className="grid gap-6 md:grid-cols-2 p-4 border rounded-lg relative"
+                        >
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="icon"
+                            className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                            onClick={() => removeQuestion(spaceIndex)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                          <div className="col-span-2">
+                            <label className="block text-sm font-medium mb-1">
+                              Boşluktan Önceki Metin
+                            </label>
+                            <Field
+                              name={`questions.${index}.question.${spaceIndex}.optionStart`}
+                              as={Input}
+                              placeholder="Örnek: Matematik, sayıları ve"
+                            />
+                          </div>
+                          <div className="col-span-2">
+                            <label className="block text-sm font-medium mb-1">
+                              Boşluktan Sonraki Metin
+                            </label>
+                            <Field
+                              name={`questions.${index}.question.${spaceIndex}.optionEnd`}
+                              as={Input}
+                              placeholder="Örnek: inceleyen bir bilim dalıdır."
+                            />
+                          </div>
+                          <div className="col-span-2">
+                            <label className="block text-sm font-medium mb-1">
+                              Doğru Cevap
+                            </label>
+                            <Field
+                              name={`questions.${index}.question.${spaceIndex}.answer`}
+                              as={Input}
+                              placeholder="Boşluğa gelecek doğru cevabı giriniz..."
+                            />
+                          </div>
+                        </div>
+                      )
+                    )}
+                  <div className="flex justify-end">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() =>
+                        pushQuestion({
+                          optionStart: "",
+                          optionEnd: "",
+                          answer: "",
+                        })
+                      }
+                    >
+                      Yeni Boşluk Ekle
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </FieldArray>
+          </div>
+        );
+
       default:
         return null;
     }
@@ -559,7 +658,11 @@ export default function TestDuzenlePage() {
                               question: [
                                 {
                                   mixedFraction: "",
-                                  parts: { A: "", B: "", C: "" },
+                                  parts: {
+                                    A: "",
+                                    B: "",
+                                    C: "",
+                                  },
                                   answer: "",
                                 },
                               ],
@@ -576,6 +679,17 @@ export default function TestDuzenlePage() {
                               type: ">",
                               correctAnswer: [],
                               direction: "Büyükten küçüğe doğru sıralayınız",
+                            });
+                          } else if (selectedType === "spaces") {
+                            push({
+                              title: "",
+                              question: [
+                                {
+                                  optionStart: "",
+                                  optionEnd: "",
+                                  answer: "",
+                                },
+                              ],
                             });
                           } else {
                             push({
