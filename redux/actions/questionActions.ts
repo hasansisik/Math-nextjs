@@ -5,7 +5,7 @@ import { server } from "@/config";
 // Types for payloads
 export interface ExamPayload {
   title: string;
-  description: string;
+  description?: string;
   accuracy: number;
   completionRate: number;
   questionsCount: number;
@@ -18,7 +18,7 @@ export interface ExamPayload {
 
 export interface MatchingPayload {
   title: string;
-  description: string;
+  description?: string;
   accuracy: number;
   completionRate: number;
   questionsCount: number;
@@ -31,7 +31,7 @@ export interface MatchingPayload {
 
 export interface FractionPayload {
   title: string;
-  description: string;
+  description?: string;
   accuracy: number;
   completionRate: number;
   questionsCount: number;
@@ -51,7 +51,7 @@ export interface FractionPayload {
 
 export interface PlacementPayload {
   title: string;
-  description: string;
+  description?: string;
   accuracy: number;
   completionRate: number;
   questionsCount: number;
@@ -65,7 +65,7 @@ export interface PlacementPayload {
 
 export interface SpacePayload {
   title: string;
-  description: string;
+  description?: string;
   accuracy: number;
   completionRate: number;
   questionsCount: number;
