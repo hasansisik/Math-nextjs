@@ -91,7 +91,6 @@ export default function TestDuzenlePage() {
       if (selectedType === "matchings") {
         formattedValues = {
           title: values.title,
-          description: values.description,
           accuracy: values.accuracy,
           completionRate: values.completionRate,
           questionsCount: values.questions.length,
@@ -106,14 +105,12 @@ export default function TestDuzenlePage() {
       } else if (selectedType === "placements") {
         formattedValues = {
           title: values.title,
-          description: values.description,
           accuracy: values.accuracy,
           completionRate: values.completionRate,
           questionsCount: values.questions.length,
           questions: values.questions.map((q: any) => ({
             title: q.title,
-            type:
-              q.direction === "Büyükten küçüğe doğru sıralayınız" ? ">" : "<",
+            type: q.direction === "Büyükten küçüğe doğru sıralayınız" ? ">" : "<",
             correctAnswer: Array.isArray(q.correctAnswer)
               ? q.correctAnswer.map(Number)
               : [],
@@ -123,7 +120,6 @@ export default function TestDuzenlePage() {
       } else if (selectedType === "fractions") {
         formattedValues = {
           title: values.title,
-          description: values.description,
           accuracy: values.accuracy,
           completionRate: values.completionRate,
           questionsCount: values.questions.length,
@@ -143,7 +139,6 @@ export default function TestDuzenlePage() {
       } else if (selectedType === "spaces") {
         formattedValues = {
           title: values.title,
-          description: values.description,
           accuracy: values.accuracy,
           completionRate: values.completionRate,
           questionsCount: values.questions.length,
@@ -159,7 +154,6 @@ export default function TestDuzenlePage() {
       } else {
         formattedValues = {
           title: values.title,
-          description: values.description,
           accuracy: values.accuracy,
           completionRate: values.completionRate,
           questionsCount: values.questions.length,
@@ -590,7 +584,6 @@ export default function TestDuzenlePage() {
         <Formik
           initialValues={{
             title: testData.title || "",
-            description: testData.description || "",
             accuracy: testData.accuracy || 0,
             completionRate: testData.completionRate || 0,
             questions: testData.questions || [],
@@ -601,7 +594,7 @@ export default function TestDuzenlePage() {
             <Form className="space-y-8">
               <div className="grid gap-6">
                 <div className="grid gap-2">
-                  <label className="text-sm font-medium">Başlık</label>
+                  <label className="text-sm font-medium">Test Başlığı</label>
                   <Field
                     name="title"
                     as={Input}
@@ -610,12 +603,26 @@ export default function TestDuzenlePage() {
                 </div>
 
                 <div className="grid gap-2">
-                  <label className="text-sm font-medium">Açıklama</label>
+                  <label className="text-sm font-medium">Doğruluk Oranı (%)</label>
                   <Field
-                    name="description"
-                    as="textarea"
-                    className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                    placeholder="Test açıklamasını giriniz..."
+                    name="accuracy"
+                    type="number"
+                    as={Input}
+                    min={0}
+                    max={100}
+                    placeholder="Doğruluk oranını giriniz..."
+                  />
+                </div>
+
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium">Tamamlanma Oranı (%)</label>
+                  <Field
+                    name="completionRate"
+                    type="number"
+                    as={Input}
+                    min={0}
+                    max={100}
+                    placeholder="Tamamlanma oranını giriniz..."
                   />
                 </div>
               </div>
