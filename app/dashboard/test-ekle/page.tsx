@@ -464,8 +464,8 @@ export default function TestEklePage() {
                     </div>
                   )}
                   <FileUpload
-                    accept="image/*"
-                    multiple
+                    accept={{ 'image/*': ['.png', '.jpg', '.jpeg', '.gif'] }}
+                    multiple={true}
                     files={questionFiles[index] || []}
                     onFilesChange={(files) => {
                       setQuestionFiles(prev => ({

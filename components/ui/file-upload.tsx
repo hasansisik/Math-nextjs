@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react'
+import React, { useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { Card } from './card'
 import { cn } from '@/lib/utils'
@@ -7,18 +7,21 @@ import { X } from 'lucide-react'
 interface FileUploadProps extends React.HTMLAttributes<HTMLDivElement> {
   onFilesChange: (files: File[]) => void
   files: File[]
+  accept?: Record<string, string[]>
+  multiple?: boolean
 }
 
-export function FileUpload({ onFilesChange, files, className, ...props }: FileUploadProps) {
+export function FileUpload({ onFilesChange, files, accept, multiple, className, ...props }: FileUploadProps) {
   const onDrop = useCallback((acceptedFiles: File[]) => {
     onFilesChange([...files, ...acceptedFiles])
   }, [files, onFilesChange])
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: {
+    accept: accept || {
       'image/*': ['.png', '.jpg', '.jpeg', '.gif']
-    }
+    },
+    multiple: multiple ?? true
   })
 
   const handleRemove = (index: number) => {
