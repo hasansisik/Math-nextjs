@@ -30,10 +30,16 @@ import {
   updateSpace,
 } from "@/redux/actions/questionActions";
 import { usePathname } from "next/navigation";
+import { FileUpload } from "@/components/ui/file-upload";
+import { CldImage } from 'next-cloudinary';
+import { uploadToCloudinary } from "@/lib/cloudinary";
 
 export default function TestDuzenlePage() {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedType, setSelectedType] = useState("");
+  const [inputType, setInputType] = useState<{ [key: number]: 'text' | 'image' }>({});
+  const [questionFiles, setQuestionFiles] = useState<{ [key: number]: File[] }>({});
+  const [uploadedImages, setUploadedImages] = useState<{ [key: number]: string[] }>({});
   const { questions: tests } = useSelector(
     (state: RootState) => state.question
   );
@@ -68,7 +74,26 @@ export default function TestDuzenlePage() {
     if (testData) {
       setSelectedCategory(testData.category);
       if (test?.exams) setSelectedType("exams");
-      else if (test?.matching) setSelectedType("matchings");
+      else if (test?.matching) {
+        setSelectedType("matchings");
+        // Set input types and uploaded images for matching questions
+        const newInputTypes: { [key: number]: 'text' | 'image' } = {};
+        const newUploadedImages: { [key: number]: string[] } = {};
+        
+        testData.questions.forEach((question: any, index: number) => {
+          if (Array.isArray(question.question)) {
+            // Check if the first item is a URL (contains http or https)
+            const isImage = question.question[0]?.includes('http');
+            newInputTypes[index] = isImage ? 'image' : 'text';
+            if (isImage) {
+              newUploadedImages[index] = question.question;
+            }
+          }
+        });
+        
+        setInputType(newInputTypes);
+        setUploadedImages(newUploadedImages);
+      }
       else if (test?.placement) setSelectedType("placements");
       else if (test?.fraction) setSelectedType("fractions");
       else if (test?.space) setSelectedType("spaces");
@@ -89,18 +114,40 @@ export default function TestDuzenlePage() {
       let formattedValues;
 
       if (selectedType === "matchings") {
+        // Upload all images first
+        const uploadPromises = Object.entries(questionFiles).map(async ([index, files]) => {
+          if (inputType[Number(index)] === 'image' && files.length > 0) {
+            const uploadedUrls = await Promise.all(
+              files.map(file => uploadToCloudinary(file))
+            );
+            return { index: Number(index), urls: uploadedUrls };
+          }
+          return null;
+        });
+
+        const uploadResults = (await Promise.all(uploadPromises)).filter(Boolean);
+
         formattedValues = {
           title: values.title,
+          description: values.description,
           accuracy: values.accuracy,
           completionRate: values.completionRate,
           questionsCount: values.questions.length,
-          questions: values.questions.map((q: any) => ({
-            title: q.title,
-            question: Array.isArray(q.question) ? q.question : [],
-            correctAnswer: Array.isArray(q.correctAnswer)
-              ? q.correctAnswer
-              : [],
-          })),
+          questions: values.questions.map((q: any, index: number) => {
+            let questionImages = [...(uploadedImages[index] || [])];
+            
+            // Add newly uploaded images
+            const newImages = uploadResults.find(r => r?.index === index)?.urls || [];
+            questionImages = [...questionImages, ...newImages];
+
+            return {
+              title: q.title,
+              question: inputType[index] === 'image'
+                ? questionImages
+                : Array.isArray(q.question) ? q.question : [],
+              correctAnswer: Array.isArray(q.correctAnswer) ? q.correctAnswer : []
+            };
+          })
         };
       } else if (selectedType === "placements") {
         formattedValues = {
@@ -382,23 +429,120 @@ export default function TestDuzenlePage() {
                 placeholder="Eşleştirme sorusunun başlığını giriniz..."
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Eşleştirilecek İfadeler
-              </label>
-              <Field
-                name={`questions.${index}.question`}
-                as="textarea"
-                className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                placeholder="İfade 1, İfade 2, İfade 3, İfade 4"
-                onChange={(e: any) => {
-                  const values = e.target.value
-                    .split(",")
-                    .map((item: string) => item.trim());
-                  setFieldValue(`questions.${index}.question`, values);
+            <div className="col-span-2">
+              <label className="block text-sm font-medium mb-1">Giriş Tipi</label>
+              <Select
+                value={inputType[index] || 'text'}
+                onValueChange={(value: 'text' | 'image') => {
+                  setInputType(prev => ({
+                    ...prev,
+                    [index]: value
+                  }));
+                  if (value === 'text') {
+                    setFieldValue(`questions.${index}.question`, []);
+                  }
                 }}
-              />
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Giriş tipini seçin" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="text">Metin</SelectItem>
+                  <SelectItem value="image">Görsel</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
+            
+            {inputType[index] === 'text' ? (
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Eşleştirilecek İfadeler
+                </label>
+                <Field
+                  name={`questions.${index}.question`}
+                  as="textarea"
+                  className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  placeholder="İfade 1, İfade 2, İfade 3, İfade 4"
+                  onChange={(e: any) => {
+                    const values = e.target.value
+                      .split(",")
+                      .map((item: string) => item.trim());
+                    setFieldValue(`questions.${index}.question`, values);
+                  }}
+                />
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <label className="block text-sm font-medium mb-1">Eşleştirilecek Görseller</label>
+                {questionFiles[index]?.length > 0 && (
+                  <div className="text-sm text-muted-foreground mb-2">
+                    Seçilen Görseller: {questionFiles[index].length} adet
+                  </div>
+                )}
+                <FileUpload
+                  accept={{ 'image/*': ['.png', '.jpg', '.jpeg', '.gif'] }}
+                  multiple={true}
+                  files={questionFiles[index] || []}
+                  onFilesChange={(files) => {
+                    // Append new files to existing ones
+                    setQuestionFiles(prev => ({
+                      ...prev,
+                      [index]: [...(prev[index] || []), ...files]
+                    }));
+                  }}
+                />
+                {uploadedImages[index]?.map((imageUrl, imgIndex) => (
+                  <div key={imgIndex} className="relative w-[200px] h-[200px] mb-4">
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      className="absolute -top-2 -right-2 h-6 w-6 rounded-full z-10"
+                      onClick={async () => {
+                        // Remove from Cloudinary
+                        try {
+                          const publicId = imageUrl.split('/').pop()?.split('.')[0];
+                          if (publicId) {
+                            await fetch(`/api/cloudinary?publicId=${publicId}`, {
+                              method: 'DELETE'
+                            });
+                          }
+                          // Update state
+                          const newImages = [...uploadedImages[index]];
+                          newImages.splice(imgIndex, 1);
+                          setUploadedImages(prev => ({
+                            ...prev,
+                            [index]: newImages
+                          }));
+                          // Update form values
+                          const currentQuestions = values.questions[index].question;
+                          if (Array.isArray(currentQuestions)) {
+                            currentQuestions.splice(imgIndex, 1);
+                            setFieldValue(`questions.${index}.question`, currentQuestions);
+                          }
+                        } catch (error) {
+                          console.error('Error deleting image:', error);
+                          toast({
+                            variant: "destructive",
+                            title: "Hata",
+                            description: "Görsel silinirken bir hata oluştu"
+                          });
+                        }
+                      }}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                    <CldImage
+                      src={imageUrl}
+                      width={200}
+                      height={200}
+                      alt={`Eşleştirme görseli ${imgIndex + 1}`}
+                      className="rounded-lg object-cover"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
             <div>
               <label className="block text-sm font-medium mb-1">
                 Doğru Eşleştirmeler
