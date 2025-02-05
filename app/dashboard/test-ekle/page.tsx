@@ -131,18 +131,16 @@ export default function TestEklePage() {
 
         formattedValues = {
           title: values.title,
-          category: values.category,
           description: values.description,
-          type: selectedType,
           accuracy: values.accuracy,
           completionRate: values.completionRate,
           questionsCount: values.questions.length,
           questions: values.questions.map((q: any, index: number) => ({
             title: q.title,
             question: inputType[index] === 'image' 
-              ? uploadResults.find(r => r?.index === index)?.urls?.join(',') || ''
-              : Array.isArray(q.question) ? q.question.join(',') : q.question,
-            correctAnswer: Array.isArray(q.correctAnswer) ? q.correctAnswer.join(',') : q.correctAnswer
+              ? uploadResults.find(r => r?.index === index)?.urls || []
+              : Array.isArray(q.question) ? q.question : q.question,
+            correctAnswer: Array.isArray(q.correctAnswer) ? q.correctAnswer : q.correctAnswer
           }))
         };
 
