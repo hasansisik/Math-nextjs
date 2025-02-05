@@ -10,7 +10,7 @@ import { createExam, createMatching, createPlacement, createFraction, createSpac
 import { useToast } from "@/hooks/use-toast"
 import { Formik, Form, Field, FieldArray } from 'formik'
 import { X } from "lucide-react"
-import type { AppDispatch } from "@/redux/store";
+import type { AppDispatch } from "@/redux/store"
 import { FileUpload } from "@/components/ui/file-upload"
 import { uploadToCloudinary } from "@/lib/cloudinary"
 import { CldImage } from 'next-cloudinary'
@@ -104,30 +104,31 @@ const getInitialValues = (type: string) => {
 }
 
 export default function TestEklePage() {
-  const [selectedCategory, setSelectedCategory] = useState("")
+  const dispatch = useDispatch<AppDispatch>()
   const [selectedType, setSelectedType] = useState("")
-  const [initialValues, setInitialValues] = useState(getInitialValues(""))
-  const dispatch = useDispatch<AppDispatch>();
   const { toast } = useToast()
   const [inputType, setInputType] = useState<{ [key: number]: 'text' | 'image' }>({})
   const [questionFiles, setQuestionFiles] = useState<{ [key: number]: File[] }>({})
+  const [uploadedImages, setUploadedImages] = useState<{ [key: number]: string[] }>({})
 
   const handleSubmit = async (values: any, { resetForm }: any) => {
     try {
       let formattedValues;
 
       if (selectedType === "matchings") {
-        // Upload all images for questions that use image input type
+        // Upload all images first
         const uploadPromises = Object.entries(questionFiles).map(async ([index, files]) => {
           if (inputType[Number(index)] === 'image' && files.length > 0) {
-            const uploadedUrls = await Promise.all(files.map(file => uploadToCloudinary(file)));
+            const uploadedUrls = await Promise.all(
+              files.map(file => uploadToCloudinary(file))
+            );
             return { index: Number(index), urls: uploadedUrls };
           }
           return null;
         });
 
         const uploadResults = (await Promise.all(uploadPromises)).filter(Boolean);
-        
+
         formattedValues = {
           title: values.title,
           category: values.category,
@@ -144,6 +145,16 @@ export default function TestEklePage() {
             correctAnswer: Array.isArray(q.correctAnswer) ? q.correctAnswer.join(',') : q.correctAnswer
           }))
         };
+
+        // Update uploaded images state for display
+        uploadResults.forEach(result => {
+          if (result) {
+            setUploadedImages(prev => ({
+              ...prev,
+              [result.index]: result.urls
+            }));
+          }
+        });
       } else if (selectedType === "placements") {
         formattedValues = {
           title: values.title,
@@ -257,7 +268,7 @@ export default function TestEklePage() {
         description: "Bir hata oluştu",
       });
     }
-  }
+  };
 
   const renderQuestionFields = (index: number, { values, setFieldValue }: any) => {
     if (selectedType === "fractions") {
@@ -455,6 +466,8 @@ export default function TestEklePage() {
                     </div>
                   )}
                   <FileUpload
+                    accept="image/*"
+                    multiple
                     files={questionFiles[index] || []}
                     onFilesChange={(files) => {
                       setQuestionFiles(prev => ({
@@ -463,6 +476,33 @@ export default function TestEklePage() {
                       }));
                     }}
                   />
+                  {uploadedImages[index]?.map((imageUrl, imgIndex) => (
+                    <div key={imgIndex} className="relative w-[200px] h-[200px] mb-4">
+                      <CldImage
+                        src={imageUrl}
+                        width={200}
+                        height={200}
+                        alt={`Question ${index + 1} image ${imgIndex + 1}`}
+                        crop="fill"
+                      />
+                      <button
+                        type="button"
+                        className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full"
+                        onClick={() => {
+                          setUploadedImages(prev => ({
+                            ...prev,
+                            [index]: prev[index].filter((_, i) => i !== imgIndex)
+                          }));
+                          setQuestionFiles(prev => ({
+                            ...prev,
+                            [index]: prev[index].filter((_, i) => i !== imgIndex)
+                          }));
+                        }}
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
@@ -610,7 +650,7 @@ export default function TestEklePage() {
         </CardHeader>
         <CardContent>
           <Formik
-            initialValues={initialValues}
+            initialValues={getInitialValues("")}
             onSubmit={handleSubmit}
           >
             {({ values, setFieldValue, resetForm }) => (
@@ -632,9 +672,7 @@ export default function TestEklePage() {
                         const selectedQuestionType = questionTypes.find(type => type.value === value);
                         const newType = selectedQuestionType?.type || "";
                         setFieldValue("category", value);
-                        setSelectedCategory(value);
                         setSelectedType(newType);
-                        setInitialValues(getInitialValues(newType));
                         resetForm({ values: getInitialValues(newType) });
                         console.log("Selected type:", newType);
                       }}
@@ -759,7 +797,7 @@ export default function TestEklePage() {
                           onClick={() => {
                             console.log("Submit button clicked");
                             console.log("Current values:", values);
-                            console.log("Selected category:", selectedCategory);
+                            console.log("Selected category:", values.category);
                           }}
                         >
                           Testi Kaydet
