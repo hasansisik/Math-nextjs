@@ -11,6 +11,9 @@ import { useToast } from "@/hooks/use-toast"
 import { Formik, Form, Field, FieldArray } from 'formik'
 import { X } from "lucide-react"
 import type { AppDispatch } from "@/redux/store";
+import { FileUpload } from "@/components/ui/file-upload"
+import { uploadToCloudinary } from "@/lib/cloudinary"
+import { CldImage } from 'next-cloudinary'
 
 const questionTypes = [
   { value: "Çoktan Seçmeli", label: "Çoktan Seçmeli Test",type:"exams" },
@@ -106,35 +109,39 @@ export default function TestEklePage() {
   const [initialValues, setInitialValues] = useState(getInitialValues(""))
   const dispatch = useDispatch<AppDispatch>();
   const { toast } = useToast()
+  const [inputType, setInputType] = useState<{ [key: number]: 'text' | 'image' }>({})
+  const [questionFiles, setQuestionFiles] = useState<{ [key: number]: File[] }>({})
 
   const handleSubmit = async (values: any, { resetForm }: any) => {
-    console.log("handleSubmit çalıştı", values);
-    console.log("selectedCategory:", selectedCategory);
-    console.log("selectedType:", selectedType);
-    
-    if (!selectedCategory || !selectedType) {
-      toast({
-        variant: "destructive",
-        title: "Hata",
-        description: "Lütfen bir soru tipi seçin",
-      })
-      return
-    }
-
     try {
       let formattedValues;
-      
+
       if (selectedType === "matchings") {
+        // Upload all images for questions that use image input type
+        const uploadPromises = Object.entries(questionFiles).map(async ([index, files]) => {
+          if (inputType[Number(index)] === 'image' && files.length > 0) {
+            const uploadedUrls = await Promise.all(files.map(file => uploadToCloudinary(file)));
+            return { index: Number(index), urls: uploadedUrls };
+          }
+          return null;
+        });
+
+        const uploadResults = (await Promise.all(uploadPromises)).filter(Boolean);
+        
         formattedValues = {
           title: values.title,
+          category: values.category,
           description: values.description,
+          type: selectedType,
           accuracy: values.accuracy,
           completionRate: values.completionRate,
           questionsCount: values.questions.length,
-          questions: values.questions.map((q: any) => ({
+          questions: values.questions.map((q: any, index: number) => ({
             title: q.title,
-            question: Array.isArray(q.question) ? q.question : [],
-            correctAnswer: Array.isArray(q.correctAnswer) ? q.correctAnswer : []
+            question: inputType[index] === 'image' 
+              ? uploadResults.find(r => r?.index === index)?.urls?.join(',') || ''
+              : Array.isArray(q.question) ? q.question.join(',') : q.question,
+            correctAnswer: Array.isArray(q.correctAnswer) ? q.correctAnswer.join(',') : q.correctAnswer
           }))
         };
       } else if (selectedType === "placements") {
@@ -395,17 +402,69 @@ export default function TestEklePage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Eşleştirilecek İfadeler (Virgülle ayırın)</label>
-              <Field
-                name={`questions.${index}.question`}
-                as="textarea"
-                className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                placeholder="6 x 2 - 2, 6 - 5 - 1, 2 x 4 - 2, 0 x 5 + 8"
-                onChange={(e: any) => {
-                  const values = e.target.value.split(",").map((item: string) => item.trim());
-                  setFieldValue(`questions.${index}.question`, values);
-                }}
-              />
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-1">Giriş Tipi</label>
+                <Select
+                  onValueChange={(value) => {
+                    const newType = value as 'text' | 'image';
+                    setInputType(prev => ({ ...prev, [index]: newType }));
+                    // Reset the form values and files for this question
+                    setFieldValue(`questions.${index}.question`, []);
+                    if (newType === 'image') {
+                      setQuestionFiles(prev => ({ ...prev, [index]: [] }));
+                    } else {
+                      setQuestionFiles(prev => {
+                        const newFiles = { ...prev };
+                        delete newFiles[index];
+                        return newFiles;
+                      });
+                    }
+                  }}
+                  defaultValue={inputType[index]}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Giriş tipini seçin" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="text">Metin</SelectItem>
+                    <SelectItem value="image">Görsel</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {inputType[index] === 'text' ? (
+                <>
+                  <label className="block text-sm font-medium mb-1">Eşleştirilecek İfadeler (Virgülle ayırın)</label>
+                  <Field
+                    name={`questions.${index}.question`}
+                    as="textarea"
+                    className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    placeholder="6 x 2 - 2, 6 - 5 - 1, 2 x 4 - 2, 0 x 5 + 8"
+                    onChange={(e: any) => {
+                      const values = e.target.value.split(",").map((item: string) => item.trim());
+                      setFieldValue(`questions.${index}.question`, values);
+                    }}
+                  />
+                </>
+              ) : (
+                <div className="space-y-4">
+                  <label className="block text-sm font-medium mb-1">Eşleştirilecek Görseller</label>
+                  {questionFiles[index]?.length > 0 && (
+                    <div className="text-sm text-muted-foreground mb-2">
+                      Seçilen Görseller: {questionFiles[index].length} adet
+                    </div>
+                  )}
+                  <FileUpload
+                    files={questionFiles[index] || []}
+                    onFilesChange={(files) => {
+                      setQuestionFiles(prev => ({
+                        ...prev,
+                        [index]: files
+                      }));
+                    }}
+                  />
+                </div>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Doğru Eşleştirmeler (Virgülle ayırın)</label>
