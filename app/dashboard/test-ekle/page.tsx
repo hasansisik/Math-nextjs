@@ -107,9 +107,9 @@ export default function TestEklePage() {
   const dispatch = useDispatch<AppDispatch>()
   const [selectedType, setSelectedType] = useState("")
   const { toast } = useToast()
-  const [inputType, setInputType] = useState<{ [key: number]: 'text' | 'image' }>({})
-  const [questionFiles, setQuestionFiles] = useState<{ [key: number]: File[] }>({})
-  const [uploadedImages, setUploadedImages] = useState<{ [key: number]: string[] }>({})
+  const [inputType, setInputType] = useState<{ [key: string]: 'text' | 'image' | 'both' }>({})
+  const [questionFiles, setQuestionFiles] = useState<{ [key: string]: File[] }>({})
+  const [uploadedImages, setUploadedImages] = useState<{ [key: string]: string[] }>({})
 
   const handleSubmit = async (values: any, { resetForm }: any) => {
     try {
@@ -118,7 +118,7 @@ export default function TestEklePage() {
       if (selectedType === "matchings") {
         // Upload all images first
         const uploadPromises = Object.entries(questionFiles).map(async ([index, files]) => {
-          if (inputType[Number(index)] === 'image' && files.length > 0) {
+          if (inputType[index] === 'image' && files.length > 0) {
             const uploadedUrls = await Promise.all(
               files.map(file => uploadToCloudinary(file))
             );
@@ -201,6 +201,23 @@ export default function TestEklePage() {
               optionEnd: space.optionEnd || "",
               answer: space.answer || ""
             }))
+          }))
+        };
+      } else if (selectedType === "exams") {
+        formattedValues = {
+          title: values.title,
+          description: values.description,
+          accuracy: values.accuracy,
+          completionRate: values.completionRate,
+          questionsCount: values.questions.length,
+          questions: values.questions.map((q: any, index: number) => ({
+            question: inputType[`question_${index}`] === 'image' 
+              ? uploadedImages[`question_${index}`] || ""
+              : inputType[`question_${index}`] === 'both' && uploadedImages[`question_${index}`]
+                ? `${q.question || ""} ${uploadedImages[`question_${index}`].join(', ')}`
+                : q.question || "",
+            options: q.options,
+            correctAnswer: q.correctAnswer || ""
           }))
         };
       } else {
@@ -361,14 +378,111 @@ export default function TestEklePage() {
         return (
           <div className="grid gap-6 md:grid-cols-2">
             <div className="col-span-2">
-              <label className="block text-sm font-medium mb-1">Soru</label>
-              <Field
-                name={`questions.${index}.question`}
-                as="textarea"
-                className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                placeholder="Soruyu giriniz..."
-              />
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-1">Soru Tipi</label>
+                <Select
+                  onValueChange={(value) => {
+                    const newType = value as 'text' | 'image' | 'both';
+                    setInputType(prev => ({ ...prev, [`question_${index}`]: newType }));
+                    if (newType === 'image' || newType === 'both') {
+                      setQuestionFiles(prev => ({ ...prev, [`question_${index}`]: [] }));
+                    } else {
+                      setQuestionFiles(prev => {
+                        const newFiles = { ...prev };
+                        delete newFiles[`question_${index}`];
+                        return newFiles;
+                      });
+                    }
+                  }}
+                  defaultValue={inputType[`question_${index}`]}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Soru tipini seçin" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="text">Sadece Metin</SelectItem>
+                    <SelectItem value="image">Sadece Görsel</SelectItem>
+                    <SelectItem value="both">Metin ve Görsel</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {(inputType[`question_${index}`] === 'text' || inputType[`question_${index}`] === 'both') && (
+                <div className="mb-4">
+                  <label className="block text-sm font-medium mb-1">Soru Metni</label>
+                  <Field
+                    name={`questions.${index}.question`}
+                    as="textarea"
+                    className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    placeholder="Soruyu giriniz..."
+                  />
+                </div>
+              )}
+
+              {(inputType[`question_${index}`] === 'image' || inputType[`question_${index}`] === 'both') && (
+                <div className="space-y-4">
+                  <label className="block text-sm font-medium mb-1">Soru Görseli</label>
+                  <FileUpload
+                    accept={{ 'image/*': ['.png', '.jpg', '.jpeg', '.gif'] }}
+                    multiple={false}
+                    files={questionFiles[`question_${index}`] || []}
+                    onFilesChange={(files) => {
+                      setQuestionFiles(prev => ({
+                        ...prev,
+                        [`question_${index}`]: files
+                      }));
+                      
+                      // Automatically upload when a file is selected
+                      if (files[0]) {
+                        uploadToCloudinary(files[0]).then(imageUrl => {
+                          setUploadedImages(prev => ({
+                            ...prev,
+                            [`question_${index}`]: [imageUrl]
+                          }));
+                        });
+                      }
+                    }}
+                  />
+                  <div className="flex flex-wrap gap-4">
+                    {Array.isArray(uploadedImages[`question_${index}`]) && uploadedImages[`question_${index}`][0] && (
+                      <div className="relative w-[200px] h-[200px]">
+                        <CldImage
+                          src={uploadedImages[`question_${index}`][0]}
+                          width={200}
+                          height={200}
+                          alt={`Question ${index + 1}`}
+                          crop="fill"
+                        />
+                        <button
+                          type="button"
+                          className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full"
+                          onClick={() => {
+                            setUploadedImages(prev => {
+                              const newImages = { ...prev };
+                              newImages[`question_${index}`] = [];
+                              return newImages;
+                            });
+                            setQuestionFiles(prev => {
+                              const newFiles = { ...prev };
+                              newFiles[`question_${index}`] = [];
+                              return newFiles;
+                            });
+                            
+                            // If it's image only mode, clear the question value
+                            if (inputType[`question_${index}`] === 'image') {
+                              setFieldValue(`questions.${index}.question`, '');
+                            }
+                          }}
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
+
             <div className="col-span-2 md:col-span-1">
               <label className="block text-sm font-medium mb-1">Seçenekler (Her seçeneği virgülle ayırın)</label>
               <Field
@@ -382,6 +496,7 @@ export default function TestEklePage() {
                 }}
               />
             </div>
+
             <div className="md:col-span-1">
               <label className="block text-sm font-medium mb-1">Doğru Cevap</label>
               <Select onValueChange={(value) => setFieldValue(`questions.${index}.correctAnswer`, value)}>
@@ -474,33 +589,35 @@ export default function TestEklePage() {
                       }));
                     }}
                   />
-                  {uploadedImages[index]?.map((imageUrl, imgIndex) => (
-                    <div key={imgIndex} className="relative w-[200px] h-[200px] mb-4">
-                      <CldImage
-                        src={imageUrl}
-                        width={200}
-                        height={200}
-                        alt={`Question ${index + 1} image ${imgIndex + 1}`}
-                        crop="fill"
-                      />
-                      <button
-                        type="button"
-                        className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full"
-                        onClick={() => {
-                          setUploadedImages(prev => ({
-                            ...prev,
-                            [index]: prev[index].filter((_, i) => i !== imgIndex)
-                          }));
-                          setQuestionFiles(prev => ({
-                            ...prev,
-                            [index]: prev[index].filter((_, i) => i !== imgIndex)
-                          }));
-                        }}
-                      >
-                        <X size={16} />
-                      </button>
-                    </div>
-                  ))}
+                  <div className="flex flex-wrap gap-4">
+                    {uploadedImages[index]?.map((imageUrl, imgIndex) => (
+                      <div key={imgIndex} className="relative w-[200px] h-[200px]">
+                        <CldImage
+                          src={imageUrl}
+                          width={200}
+                          height={200}
+                          alt={`Question ${index + 1} image ${imgIndex + 1}`}
+                          crop="fill"
+                        />
+                        <button
+                          type="button"
+                          className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full"
+                          onClick={() => {
+                            setUploadedImages(prev => ({
+                              ...prev,
+                              [index]: prev[index].filter((_, i) => i !== imgIndex)
+                            }));
+                            setQuestionFiles(prev => ({
+                              ...prev,
+                              [index]: prev[index].filter((_, i) => i !== imgIndex)
+                            }));
+                          }}
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
@@ -669,9 +786,11 @@ export default function TestEklePage() {
                       onValueChange={(value) => {
                         const selectedQuestionType = questionTypes.find(type => type.value === value);
                         const newType = selectedQuestionType?.type || "";
+                        const currentTitle = values.title; // Store current title
                         setFieldValue("category", value);
                         setSelectedType(newType);
-                        resetForm({ values: getInitialValues(newType) });
+                        const newValues = getInitialValues(newType);
+                        resetForm({ values: { ...newValues, title: currentTitle } }); // Preserve title
                         console.log("Selected type:", newType);
                       }}
                     >

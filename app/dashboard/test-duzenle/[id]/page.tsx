@@ -37,9 +37,9 @@ import { uploadToCloudinary } from "@/lib/cloudinary";
 export default function TestDuzenlePage() {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedType, setSelectedType] = useState("");
-  const [inputType, setInputType] = useState<{ [key: number]: 'text' | 'image' }>({});
-  const [questionFiles, setQuestionFiles] = useState<{ [key: number]: File[] }>({});
-  const [uploadedImages, setUploadedImages] = useState<{ [key: number]: string[] }>({});
+  const [inputType, setInputType] = useState<{ [key: string]: 'text' | 'image' | 'both' }>({});
+  const [questionFiles, setQuestionFiles] = useState<{ [key: string]: File[] }>({});
+  const [uploadedImages, setUploadedImages] = useState<{ [key: string]: string }>({});
   const { questions: tests } = useSelector(
     (state: RootState) => state.question
   );
@@ -73,27 +73,34 @@ export default function TestDuzenlePage() {
   useEffect(() => {
     if (testData) {
       setSelectedCategory(testData.category);
-      if (test?.exams) setSelectedType("exams");
-      else if (test?.matching) {
-        setSelectedType("matchings");
-        // Set input types and uploaded images for matching questions
-        const newInputTypes: { [key: number]: 'text' | 'image' } = {};
-        const newUploadedImages: { [key: number]: string[] } = {};
+      if (test?.exams) {
+        setSelectedType("exams");
+        // Set input types and uploaded images for exam questions
+        const newInputTypes: { [key: string]: 'text' | 'image' | 'both' } = {};
+        const newUploadedImages: { [key: string]: string } = {};
         
         testData.questions.forEach((question: any, index: number) => {
-          if (Array.isArray(question.question)) {
-            // Check if the first item is a URL (contains http or https)
-            const isImage = question.question[0]?.includes('http');
-            newInputTypes[index] = isImage ? 'image' : 'text';
-            if (isImage) {
-              newUploadedImages[index] = question.question;
+          if (question.question.includes('http')) {
+            const parts = question.question.split(' ');
+            const imageUrl = parts.find((part: string) => part.startsWith('http'));
+            const text = parts.filter((part: string) => !part.startsWith('http')).join(' ');
+            
+            if (text) {
+              newInputTypes[`question_${index}`] = 'both';
+              newUploadedImages[`question_${index}`] = imageUrl;
+            } else {
+              newInputTypes[`question_${index}`] = 'image';
+              newUploadedImages[`question_${index}`] = imageUrl;
             }
+          } else {
+            newInputTypes[`question_${index}`] = 'text';
           }
         });
         
         setInputType(newInputTypes);
         setUploadedImages(newUploadedImages);
       }
+      else if (test?.matching) setSelectedType("matchings");
       else if (test?.placement) setSelectedType("placements");
       else if (test?.fraction) setSelectedType("fractions");
       else if (test?.space) setSelectedType("spaces");
@@ -116,7 +123,7 @@ export default function TestDuzenlePage() {
       if (selectedType === "matchings") {
         // Upload all images first
         const uploadPromises = Object.entries(questionFiles).map(async ([index, files]) => {
-          if (inputType[Number(index)] === 'image' && files.length > 0) {
+          if (inputType[index] === 'image' && files.length > 0) {
             const uploadedUrls = await Promise.all(
               files.map(file => uploadToCloudinary(file))
             );
@@ -204,11 +211,15 @@ export default function TestDuzenlePage() {
           accuracy: values.accuracy,
           completionRate: values.completionRate,
           questionsCount: values.questions.length,
-          questions: values.questions.map((q: any) => ({
-            question: q.question || "",
-            options: Array.isArray(q.options) ? q.options : [],
-            correctAnswer: q.correctAnswer || "",
-          })),
+          questions: values.questions.map((q: any, index: number) => ({
+            question: inputType[`question_${index}`] === 'image' 
+              ? uploadedImages[`question_${index}`] || ""
+              : inputType[`question_${index}`] === 'both' && uploadedImages[`question_${index}`]
+                ? `${q.question || ""} ${uploadedImages[`question_${index}`]}`
+                : q.question || "",
+            options: q.options,
+            correctAnswer: q.correctAnswer || ""
+          }))
         };
       }
 
@@ -366,42 +377,130 @@ export default function TestDuzenlePage() {
         return (
           <div className="grid gap-6 md:grid-cols-2">
             <div className="col-span-2">
-              <label className="block text-sm font-medium mb-1">Soru</label>
-              <Field
-                name={`questions.${index}.question`}
-                as="textarea"
-                className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                placeholder="Soruyu giriniz..."
-              />
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-1">Soru Tipi</label>
+                <Select
+                  onValueChange={(value) => {
+                    const newType = value as 'text' | 'image' | 'both';
+                    setInputType(prev => ({ ...prev, [`question_${index}`]: newType }));
+                    if (newType === 'image' || newType === 'both') {
+                      setQuestionFiles(prev => ({ ...prev, [`question_${index}`]: [] }));
+                    } else {
+                      setQuestionFiles(prev => {
+                        const newFiles = { ...prev };
+                        delete newFiles[`question_${index}`];
+                        return newFiles;
+                      });
+                    }
+                  }}
+                  defaultValue={inputType[`question_${index}`]}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Soru tipini seçin" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="text">Sadece Metin</SelectItem>
+                    <SelectItem value="image">Sadece Görsel</SelectItem>
+                    <SelectItem value="both">Metin ve Görsel</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {(inputType[`question_${index}`] === 'text' || inputType[`question_${index}`] === 'both') && (
+                <div className="mb-4">
+                  <label className="block text-sm font-medium mb-1">Soru Metni</label>
+                  <Field
+                    name={`questions.${index}.question`}
+                    as="textarea"
+                    className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    placeholder="Soruyu giriniz..."
+                  />
+                </div>
+              )}
+
+              {(inputType[`question_${index}`] === 'image' || inputType[`question_${index}`] === 'both') && (
+                <div className="space-y-4">
+                  <label className="block text-sm font-medium mb-1">Soru Görseli</label>
+                  <FileUpload
+                    accept={{ 'image/*': ['.png', '.jpg', '.jpeg', '.gif'] }}
+                    multiple={false}
+                    files={questionFiles[`question_${index}`] || []}
+                    onFilesChange={(files) => {
+                      setQuestionFiles(prev => ({
+                        ...prev,
+                        [`question_${index}`]: files
+                      }));
+                      
+                      // Automatically upload when a file is selected
+                      if (files[0]) {
+                        uploadToCloudinary(files[0]).then(imageUrl => {
+                          setUploadedImages(prev => ({
+                            ...prev,
+                            [`question_${index}`]: imageUrl
+                          }));
+                        });
+                      }
+                    }}
+                  />
+                  {uploadedImages[`question_${index}`] && (
+                    <div className="relative w-[200px] h-[200px] mb-4">
+                      <CldImage
+                        src={uploadedImages[`question_${index}`]}
+                        width={200}
+                        height={200}
+                        alt={`Question ${index + 1}`}
+                        crop="fill"
+                      />
+                      <button
+                        type="button"
+                        className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full"
+                        onClick={() => {
+                          setUploadedImages(prev => {
+                            const newImages = { ...prev };
+                            delete newImages[`question_${index}`];
+                            return newImages;
+                          });
+                          setQuestionFiles(prev => {
+                            const newFiles = { ...prev };
+                            delete newFiles[`question_${index}`];
+                            return newFiles;
+                          });
+                          
+                          // Clear both the image and any existing URL in the question field
+                          const currentQuestion = values.questions[index].question || "";
+                          const cleanedQuestion = currentQuestion.split(' ')
+                            .filter(part => !part.startsWith('http'))
+                            .join(' ')
+                            .trim();
+                          
+                          setFieldValue(`questions.${index}.question`, cleanedQuestion);
+                        }}
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
+
             <div className="col-span-2 md:col-span-1">
-              <label className="block text-sm font-medium mb-1">
-                Seçenekler (Her seçeneği virgülle ayırın)
-              </label>
+              <label className="block text-sm font-medium mb-1">Seçenekler (Her seçeneği virgülle ayırın)</label>
               <Field
                 name={`questions.${index}.options`}
                 as="textarea"
                 className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 placeholder="Seçenek 1,Seçenek 2,Seçenek 3,Seçenek 4"
                 onChange={(e: any) => {
-                  const options = e.target.value
-                    ? e.target.value
-                        .split(",")
-                        .map((opt: string) => opt.trim().replace(/^\s+|\s+$/g, ""))
-                    : [];
+                  const options = e.target.value ? e.target.value.split(',').map((opt: string) => opt.trim().replace(/^\s+|\s+$/g, '')) : [];
                   setFieldValue(`questions.${index}.options`, options);
                 }}
               />
             </div>
+
             <div className="md:col-span-1">
-              <label className="block text-sm font-medium mb-1">
-                Doğru Cevap
-              </label>
-              <Select
-                onValueChange={(value) =>
-                  setFieldValue(`questions.${index}.correctAnswer`, value)
-                }
-              >
+              <label className="block text-sm font-medium mb-1">Doğru Cevap</label>
+              <Select onValueChange={(value) => setFieldValue(`questions.${index}.correctAnswer`, value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Doğru cevabı seçin" />
                 </SelectTrigger>
@@ -465,8 +564,10 @@ export default function TestDuzenlePage() {
                   placeholder="İfade 1, İfade 2, İfade 3, İfade 4"
                   onChange={(e: any) => {
                     const values = e.target.value
-                      .split(",")
-                      .map((item: string) => item.trim());
+                      ? e.target.value
+                          .split(",")
+                          .map((item: string) => item.trim())
+                      : [];
                     setFieldValue(`questions.${index}.question`, values);
                   }}
                 />
