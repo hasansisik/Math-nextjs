@@ -39,7 +39,7 @@ export default function TestDuzenlePage() {
   const [selectedType, setSelectedType] = useState("");
   const [inputType, setInputType] = useState<{ [key: string]: 'text' | 'image' | 'both' }>({});
   const [questionFiles, setQuestionFiles] = useState<{ [key: string]: File[] }>({});
-  const [uploadedImages, setUploadedImages] = useState<{ [key: string]: string }>({});
+  const [uploadedImages, setUploadedImages] = useState<{ [key: string]: string[] }>({});
   const { questions: tests } = useSelector(
     (state: RootState) => state.question
   );
@@ -77,20 +77,20 @@ export default function TestDuzenlePage() {
         setSelectedType("exams");
         // Set input types and uploaded images for exam questions
         const newInputTypes: { [key: string]: 'text' | 'image' | 'both' } = {};
-        const newUploadedImages: { [key: string]: string } = {};
+        const newUploadedImages: { [key: string]: string[] } = {};
         
         testData.questions.forEach((question: any, index: number) => {
           if (question.question.includes('http')) {
             const parts = question.question.split(' ');
-            const imageUrl = parts.find((part: string) => part.startsWith('http'));
+            const imageUrls = parts.filter((part: string) => part.startsWith('http'));
             const text = parts.filter((part: string) => !part.startsWith('http')).join(' ');
             
             if (text) {
               newInputTypes[`question_${index}`] = 'both';
-              newUploadedImages[`question_${index}`] = imageUrl;
+              newUploadedImages[`question_${index}`] = imageUrls;
             } else {
               newInputTypes[`question_${index}`] = 'image';
-              newUploadedImages[`question_${index}`] = imageUrl;
+              newUploadedImages[`question_${index}`] = imageUrls;
             }
           } else {
             newInputTypes[`question_${index}`] = 'text';
@@ -213,9 +213,9 @@ export default function TestDuzenlePage() {
           questionsCount: values.questions.length,
           questions: values.questions.map((q: any, index: number) => ({
             question: inputType[`question_${index}`] === 'image' 
-              ? uploadedImages[`question_${index}`] || ""
-              : inputType[`question_${index}`] === 'both' && uploadedImages[`question_${index}`]
-                ? `${q.question || ""} ${uploadedImages[`question_${index}`]}`
+              ? uploadedImages[`question_${index}`]?.[0] || ""
+              : inputType[`question_${index}`] === 'both' && uploadedImages[`question_${index}`]?.[0]
+                ? `${q.question || ""} ${uploadedImages[`question_${index}`][0]}`
                 : q.question || "",
             options: q.options,
             correctAnswer: q.correctAnswer || ""
@@ -436,16 +436,16 @@ export default function TestDuzenlePage() {
                         uploadToCloudinary(files[0]).then(imageUrl => {
                           setUploadedImages(prev => ({
                             ...prev,
-                            [`question_${index}`]: imageUrl
+                            [`question_${index}`]: [imageUrl]
                           }));
                         });
                       }
                     }}
                   />
-                  {uploadedImages[`question_${index}`] && (
+                  {uploadedImages[`question_${index}`]?.[0] && (
                     <div className="relative w-[200px] h-[200px] mb-4">
                       <CldImage
-                        src={uploadedImages[`question_${index}`]}
+                        src={uploadedImages[`question_${index}`][0]}
                         width={200}
                         height={200}
                         alt={`Question ${index + 1}`}
@@ -457,19 +457,19 @@ export default function TestDuzenlePage() {
                         onClick={() => {
                           setUploadedImages(prev => {
                             const newImages = { ...prev };
-                            delete newImages[`question_${index}`];
+                            newImages[`question_${index}`] = [];
                             return newImages;
                           });
                           setQuestionFiles(prev => {
                             const newFiles = { ...prev };
-                            delete newFiles[`question_${index}`];
+                            newFiles[`question_${index}`] = [];
                             return newFiles;
                           });
                           
                           // Clear both the image and any existing URL in the question field
                           const currentQuestion = values.questions[index].question || "";
                           const cleanedQuestion = currentQuestion.split(' ')
-                            .filter(part => !part.startsWith('http'))
+                            .filter((part: string) => !part.startsWith('http'))
                             .join(' ')
                             .trim();
                           
@@ -590,6 +590,16 @@ export default function TestDuzenlePage() {
                       ...prev,
                       [index]: [...(prev[index] || []), ...files]
                     }));
+                    
+                    // Automatically upload when a file is selected
+                    if (files.length > 0) {
+                      Promise.all(files.map(file => uploadToCloudinary(file))).then(imageUrls => {
+                        setUploadedImages(prev => ({
+                          ...prev,
+                          [index]: [...(prev[index] || []), ...imageUrls]
+                        }));
+                      });
+                    }
                   }}
                 />
                 {uploadedImages[index]?.map((imageUrl, imgIndex) => (
