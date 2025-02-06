@@ -298,10 +298,6 @@ const PlacementPage = () => {
         <h2 className="pt-5 font-bold text-lg">
           {placement.questions[currentQuestionIndex].title}
         </h2>
-        <p className="text-neutral-500">
-          Sürükle bırak yaparak sorular ve cevaplarını eşleştiriniz.
-        </p>
-
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}

@@ -253,10 +253,6 @@ const FractionPage = () => {
         <h2 className="pt-5 font-bold text-lg">
           {fractionData.questions[currentQuestionIndex].title}
         </h2>
-        <p className="text-neutral-500">
-          Sürükle bırak yaparak sorular ve cevaplarını eşleştiriniz.
-        </p>
-
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
           {fractionData.questions[currentQuestionIndex].question.map((q: Question, index: number) => (
             <div key={index} className="bg-white p-6 rounded-lg border shadow-sm flex items-center justify-center h-[200px]">
