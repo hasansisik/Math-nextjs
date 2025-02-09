@@ -163,7 +163,7 @@ export default function TestEklePage() {
           questions: values.questions.map((q: any) => ({
             title: q.title,
             type: q.direction === "Büyükten küçüğe doğru sıralayınız" ? ">" : "<",
-            correctAnswer: Array.isArray(q.correctAnswer) ? q.correctAnswer.map(Number) : [],
+            correctAnswer: Array.isArray(q.correctAnswer) ? q.correctAnswer : [],
             direction: q.direction
           }))
         };

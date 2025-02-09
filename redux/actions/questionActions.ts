@@ -58,7 +58,7 @@ export interface PlacementPayload {
   questions: {
     type: '>' | '<';
     title: string;
-    correctAnswer: number[];
+    correctAnswer: string[];
     direction: string;
   }[];
 }
@@ -208,9 +208,13 @@ export const createPlacement = createAsyncThunk(
   "question/createPlacement",
   async (payload: PlacementPayload, thunkAPI) => {
     try {
+      console.log("createPlacement", payload)
       const { data } = await axios.post(`${server}/question/placement`, payload);
       return data.data;
-    } catch (error: any) {
+    }catch (error: any) {
+      console.log("error", error)
+      console.log("error2", error.response.data.message)
+
       return thunkAPI.rejectWithValue(error.response.data.message);
     }
   }
