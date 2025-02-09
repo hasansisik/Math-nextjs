@@ -443,11 +443,11 @@ export default function TestDuzenlePage() {
                     }}
                   />
                   {uploadedImages[`question_${index}`]?.[0] && (
-                    <div className="relative w-[200px] h-[200px] mb-4">
+                    <div className="relative w-[100px] h-[100px] mb-4">
                       <CldImage
                         src={uploadedImages[`question_${index}`][0]}
-                        width={200}
-                        height={200}
+                        width={100}
+                        height={100}
                         alt={`Question ${index + 1}`}
                         crop="fill"
                       />
@@ -485,14 +485,15 @@ export default function TestDuzenlePage() {
             </div>
 
             <div className="col-span-2 md:col-span-1">
-              <label className="block text-sm font-medium mb-1">Seçenekler (Her seçeneği virgülle ayırın)</label>
+              <label className="block text-sm font-medium mb-1">Seçenekler (Her seçeneği noktalı virgülle ayırın)</label>
               <Field
                 name={`questions.${index}.options`}
                 as="textarea"
                 className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                placeholder="Seçenek 1,Seçenek 2,Seçenek 3,Seçenek 4"
+                placeholder="Seçenek 1;Seçenek 2;Seçenek 3;Seçenek 4"
+                value={values.questions[index].options ? values.questions[index].options.join(';') : ''}
                 onChange={(e: any) => {
-                  const options = e.target.value ? e.target.value.split(',').map((opt: string) => opt.trim().replace(/^\s+|\s+$/g, '')) : [];
+                  const options = e.target.value ? e.target.value.split(';').map((opt: string) => opt.trim().replace(/^\s+|\s+$/g, '')) : [];
                   setFieldValue(`questions.${index}.options`, options);
                 }}
               />
@@ -561,13 +562,10 @@ export default function TestDuzenlePage() {
                   name={`questions.${index}.question`}
                   as="textarea"
                   className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                  placeholder="İfade 1, İfade 2, İfade 3, İfade 4"
+                  placeholder="İfade 1; İfade 2; İfade 3; İfade 4"
+                  value={values.questions[index].question ? values.questions[index].question.join(';') : ''}
                   onChange={(e: any) => {
-                    const values = e.target.value
-                      ? e.target.value
-                          .split(",")
-                          .map((item: string) => item.trim())
-                      : [];
+                    const values = e.target.value ? e.target.value.split(';').map((item: string) => item.trim()) : [];
                     setFieldValue(`questions.${index}.question`, values);
                   }}
                 />
@@ -603,7 +601,7 @@ export default function TestDuzenlePage() {
                   }}
                 />
                 {uploadedImages[index]?.map((imageUrl, imgIndex) => (
-                  <div key={imgIndex} className="relative w-[200px] h-[200px] mb-4">
+                  <div key={imgIndex} className="relative w-[100px] h-[100px] mb-4">
                     <Button
                       type="button"
                       variant="destructive"
@@ -645,8 +643,8 @@ export default function TestDuzenlePage() {
                     </Button>
                     <CldImage
                       src={imageUrl}
-                      width={200}
-                      height={200}
+                      width={100}
+                      height={100}
                       alt={`Eşleştirme görseli ${imgIndex + 1}`}
                       className="rounded-lg object-cover"
                     />
@@ -662,11 +660,10 @@ export default function TestDuzenlePage() {
                 name={`questions.${index}.correctAnswer`}
                 as="textarea"
                 className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                placeholder="Cevap 1, Cevap 2, Cevap 3, Cevap 4"
+                placeholder="Cevap 1; Cevap 2; Cevap 3; Cevap 4"
+                value={values.questions[index].correctAnswer ? values.questions[index].correctAnswer.join(';') : ''}
                 onChange={(e: any) => {
-                  const values = e.target.value
-                    .split(",")
-                    .map((item: string) => item.trim());
+                  const values = e.target.value ? e.target.value.split(';').map((item: string) => item.trim()) : [];
                   setFieldValue(`questions.${index}.correctAnswer`, values);
                 }}
               />
@@ -718,10 +715,10 @@ export default function TestDuzenlePage() {
                 name={`questions.${index}.correctAnswer`}
                 as="textarea"
                 className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                placeholder="1,2,3,4"
+                placeholder="1;2;3;4"
                 value={
                   Array.isArray(values.questions[index].correctAnswer)
-                    ? values.questions[index].correctAnswer.join(",")
+                    ? values.questions[index].correctAnswer.join(";")
                     : ""
                 }
                 onChange={(e: any) => {
@@ -730,7 +727,7 @@ export default function TestDuzenlePage() {
                     setFieldValue(`questions.${index}.correctAnswer`, []);
                     return;
                   }
-                  const items = inputValue.split(",");
+                  const items = inputValue.split(";");
                   setFieldValue(`questions.${index}.correctAnswer`, items);
                 }}
               />

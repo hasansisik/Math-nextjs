@@ -50,7 +50,7 @@ export function FileUpload({ onFilesChange, files, accept, multiple, className, 
       </Card>
 
       {files.length > 0 && (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-6 gap-4">
           {files.map((file, index) => (
             <div key={index} className="relative">
               <Card className="p-2">
@@ -58,7 +58,7 @@ export function FileUpload({ onFilesChange, files, accept, multiple, className, 
                   <img
                     src={URL.createObjectURL(file)}
                     alt={`Preview ${index + 1}`}
-                    className="w-full h-32 object-cover rounded-md"
+                    className="w-full h-full object-cover rounded-md"
                     onLoad={(e) => {
                       URL.revokeObjectURL((e.target as HTMLImageElement).src)
                     }}

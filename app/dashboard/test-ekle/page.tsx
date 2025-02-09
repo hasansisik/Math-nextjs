@@ -214,7 +214,7 @@ export default function TestEklePage() {
             question: inputType[`question_${index}`] === 'image' 
               ? uploadedImages[`question_${index}`] || ""
               : inputType[`question_${index}`] === 'both' && uploadedImages[`question_${index}`]
-                ? `${q.question || ""} ${uploadedImages[`question_${index}`].join(', ')}`
+                ? `${q.question || ""} ${uploadedImages[`question_${index}`].join('; ')}`
                 : q.question || "",
             options: q.options,
             correctAnswer: q.correctAnswer || ""
@@ -415,6 +415,11 @@ export default function TestEklePage() {
                     as="textarea"
                     className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                     placeholder="Soruyu giriniz..."
+                    value={values.questions[index].question ? values.questions[index].question.join(';') : ''}
+                    onChange={(e: any) => {
+                      const values = e.target.value ? e.target.value.split(';').map((item: string) => item.trim()) : [];
+                      setFieldValue(`questions.${index}.question`, values);
+                    }}
                   />
                 </div>
               )}
@@ -445,11 +450,11 @@ export default function TestEklePage() {
                   />
                   <div className="flex flex-wrap gap-4">
                     {Array.isArray(uploadedImages[`question_${index}`]) && uploadedImages[`question_${index}`][0] && (
-                      <div className="relative w-[200px] h-[200px]">
+                      <div className="relative w-[100px] h-[100px]">
                         <CldImage
                           src={uploadedImages[`question_${index}`][0]}
-                          width={200}
-                          height={200}
+                          width={100}
+                          height={100}
                           alt={`Question ${index + 1}`}
                           crop="fill"
                         />
@@ -457,16 +462,14 @@ export default function TestEklePage() {
                           type="button"
                           className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full"
                           onClick={() => {
-                            setUploadedImages(prev => {
-                              const newImages = { ...prev };
-                              newImages[`question_${index}`] = [];
-                              return newImages;
-                            });
-                            setQuestionFiles(prev => {
-                              const newFiles = { ...prev };
-                              newFiles[`question_${index}`] = [];
-                              return newFiles;
-                            });
+                            setUploadedImages(prev => ({
+                              ...prev,
+                              [`question_${index}`]: []
+                            }));
+                            setQuestionFiles(prev => ({
+                              ...prev,
+                              [`question_${index}`]: []
+                            }));
                             
                             // If it's image only mode, clear the question value
                             if (inputType[`question_${index}`] === 'image') {
@@ -484,14 +487,15 @@ export default function TestEklePage() {
             </div>
 
             <div className="col-span-2 md:col-span-1">
-              <label className="block text-sm font-medium mb-1">Seçenekler (Her seçeneği virgülle ayırın)</label>
+              <label className="block text-sm font-medium mb-1">Seçenekler (Her seçeneği noktalı virgülle ayırın)</label>
               <Field
                 name={`questions.${index}.options`}
                 as="textarea"
                 className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                placeholder="Seçenek 1,Seçenek 2,Seçenek 3,Seçenek 4"
+                placeholder="Seçenek 1;Seçenek 2;Seçenek 3;Seçenek 4"
+                value={values.questions[index].options ? values.questions[index].options.join(';') : ''}
                 onChange={(e: any) => {
-                  const options = e.target.value ? e.target.value.split(',').map((opt: string) => opt.trim().replace(/^\s+|\s+$/g, '')) : [];
+                  const options = e.target.value ? e.target.value.split(';').map((opt: string) => opt.trim().replace(/^\s+|\s+$/g, '')) : [];
                   setFieldValue(`questions.${index}.options`, options);
                 }}
               />
@@ -558,14 +562,15 @@ export default function TestEklePage() {
 
               {inputType[index] === 'text' ? (
                 <>
-                  <label className="block text-sm font-medium mb-1">Eşleştirilecek İfadeler (Virgülle ayırın)</label>
+                  <label className="block text-sm font-medium mb-1">Eşleştirilecek İfadeler (Noktalı virgülle ayırın)</label>
                   <Field
                     name={`questions.${index}.question`}
                     as="textarea"
                     className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                    placeholder="6 x 2 - 2, 6 - 5 - 1, 2 x 4 - 2, 0 x 5 + 8"
+                    placeholder="6 x 2 - 2; 6 - 5 - 1; 2 x 4 - 2; 0 x 5 + 8"
+                    value={values.questions[index].question ? values.questions[index].question.join(';') : ''}
                     onChange={(e: any) => {
-                      const values = e.target.value.split(",").map((item: string) => item.trim());
+                      const values = e.target.value ? e.target.value.split(';').map((item: string) => item.trim()) : [];
                       setFieldValue(`questions.${index}.question`, values);
                     }}
                   />
@@ -591,11 +596,11 @@ export default function TestEklePage() {
                   />
                   <div className="flex flex-wrap gap-4">
                     {uploadedImages[index]?.map((imageUrl, imgIndex) => (
-                      <div key={imgIndex} className="relative w-[200px] h-[200px]">
+                      <div key={imgIndex} className="relative w-[100px] h-[100px]">
                         <CldImage
                           src={imageUrl}
-                          width={200}
-                          height={200}
+                          width={100}
+                          height={100}
                           alt={`Question ${index + 1} image ${imgIndex + 1}`}
                           crop="fill"
                         />
@@ -622,14 +627,15 @@ export default function TestEklePage() {
               )}
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Doğru Eşleştirmeler (Virgülle ayırın)</label>
+              <label className="block text-sm font-medium mb-1">Doğru Eşleştirmeler (Noktalı virgülle ayırın)</label>
               <Field
                 name={`questions.${index}.correctAnswer`}
                 as="textarea"
                 className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                placeholder="10, 0, 6, 8"
+                placeholder="10; 0; 6; 8"
+                value={values.questions[index].correctAnswer ? values.questions[index].correctAnswer.join(';') : ''}
                 onChange={(e: any) => {
-                  const values = e.target.value.split(",").map((item: string) => item.trim());
+                  const values = e.target.value ? e.target.value.split(';').map((item: string) => item.trim()) : [];
                   setFieldValue(`questions.${index}.correctAnswer`, values);
                 }}
               />
@@ -664,14 +670,15 @@ export default function TestEklePage() {
               </Select>
             </div>
             <div className="col-span-2">
-              <label className="block text-sm font-medium mb-1">Sıralanacak Sayılar (Virgülle ayırın)</label>
+              <label className="block text-sm font-medium mb-1">Sıralanacak Sayılar (Noktalı virgülle ayırın)</label>
               <Field
                 name={`questions.${index}.correctAnswer`}
                 as="textarea"
                 className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                placeholder="12, 3, -1, -5"
+                placeholder="12; 3; -1; -5"
+                value={values.questions[index].correctAnswer ? values.questions[index].correctAnswer.join(';') : ''}
                 onChange={(e: any) => {
-                  const values = e.target.value.split(",").map((item: string) => item.trim());
+                  const values = e.target.value ? e.target.value.split(';').map((item: string) => item.trim()) : [];
                   setFieldValue(`questions.${index}.correctAnswer`, values);
                 }}
               />
