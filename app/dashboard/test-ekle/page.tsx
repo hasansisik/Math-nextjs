@@ -215,7 +215,7 @@ export default function TestEklePage() {
               ? uploadedImages[`question_${index}`] || ""
               : inputType[`question_${index}`] === 'both' && uploadedImages[`question_${index}`]
                 ? `${q.question || ""} ${uploadedImages[`question_${index}`].join('; ')}`
-                : q.question || "",
+                : Array.isArray(q.question) ? q.question[0] || "" : q.question || "",
             options: q.options,
             correctAnswer: q.correctAnswer || ""
           }))

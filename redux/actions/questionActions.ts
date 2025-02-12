@@ -208,13 +208,9 @@ export const createPlacement = createAsyncThunk(
   "question/createPlacement",
   async (payload: PlacementPayload, thunkAPI) => {
     try {
-      console.log("createPlacement", payload)
       const { data } = await axios.post(`${server}/question/placement`, payload);
       return data.data;
     }catch (error: any) {
-      console.log("error", error)
-      console.log("error2", error.response.data.message)
-
       return thunkAPI.rejectWithValue(error.response.data.message);
     }
   }
@@ -224,7 +220,6 @@ export const updatePlacement = createAsyncThunk(
   "question/updatePlacement",
   async ({ id, payload }: { id: string; payload: PlacementPayload }, thunkAPI) => {
     try {
-      console.log("updatePlacement", payload)
       const { data } = await axios.put(`${server}/question/placement/${id}`, payload);
       return data.data;
     } catch (error: any) {
@@ -262,7 +257,6 @@ export const updateSpace = createAsyncThunk(
   "question/updateSpace",
   async ({ id, payload }: { id: string; payload: SpacePayload }, thunkAPI) => {
     try {
-      console.log("updateSpace", payload)
       const { data } = await axios.put(`${server}/question/space/${id}`, payload);
       return data.data;
     } catch (error: any) {
