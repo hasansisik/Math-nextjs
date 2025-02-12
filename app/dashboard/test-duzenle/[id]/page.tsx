@@ -166,7 +166,7 @@ export default function TestDuzenlePage() {
             title: q.title,
             type: q.direction === "Büyükten küçüğe doğru sıralayınız" ? ">" : "<",
             correctAnswer: Array.isArray(q.correctAnswer)
-              ? q.correctAnswer.map(Number)
+              ? q.correctAnswer.map((answer: string) => answer.toString())
               : [],
             direction: q.direction,
           })),
@@ -444,16 +444,11 @@ export default function TestDuzenlePage() {
                   />
                   {uploadedImages[`question_${index}`]?.[0] && (
                     <div className="relative w-[100px] h-[100px] mb-4">
-                      <CldImage
-                        src={uploadedImages[`question_${index}`][0]}
-                        width={100}
-                        height={100}
-                        alt={`Question ${index + 1}`}
-                        crop="fill"
-                      />
-                      <button
+                      <Button
                         type="button"
-                        className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full"
+                        variant="destructive"
+                        size="icon"
+                        className="absolute -top-2 -right-2 h-6 w-6 rounded-full z-10"
                         onClick={() => {
                           setUploadedImages(prev => {
                             const newImages = { ...prev };
@@ -477,7 +472,14 @@ export default function TestDuzenlePage() {
                         }}
                       >
                         <X size={16} />
-                      </button>
+                      </Button>
+                      <CldImage
+                        src={uploadedImages[`question_${index}`][0]}
+                        width={100}
+                        height={100}
+                        alt={`Question ${index + 1}`}
+                        crop="fill"
+                      />
                     </div>
                   )}
                 </div>
@@ -654,17 +656,17 @@ export default function TestDuzenlePage() {
             )}
             <div>
               <label className="block text-sm font-medium mb-1">
-                Doğru Eşleştirmeler
+                Eşleştirilecek Cevaplar
               </label>
               <Field
                 name={`questions.${index}.correctAnswer`}
                 as="textarea"
                 className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 placeholder="Cevap 1; Cevap 2; Cevap 3; Cevap 4"
-                value={values.questions[index].correctAnswer ? values.questions[index].correctAnswer.join(';') : ''}
+                value={Array.isArray(values.questions[index].correctAnswer) ? values.questions[index].correctAnswer.join(';') : ''}
                 onChange={(e: any) => {
-                  const values = e.target.value ? e.target.value.split(';').map((item: string) => item.trim()) : [];
-                  setFieldValue(`questions.${index}.correctAnswer`, values);
+                  const inputValues = e.target.value.split(';').map((item: string) => item.toString().trim());
+                  setFieldValue(`questions.${index}.correctAnswer`, inputValues);
                 }}
               />
             </div>
@@ -715,20 +717,11 @@ export default function TestDuzenlePage() {
                 name={`questions.${index}.correctAnswer`}
                 as="textarea"
                 className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                placeholder="1;2;3;4"
-                value={
-                  Array.isArray(values.questions[index].correctAnswer)
-                    ? values.questions[index].correctAnswer.join(";")
-                    : ""
-                }
+                placeholder="İfade 1; İfade 2; İfade 3; İfade 4"
+                value={Array.isArray(values.questions[index].correctAnswer) ? values.questions[index].correctAnswer.join(';') : ''}
                 onChange={(e: any) => {
-                  const inputValue = e.target.value;
-                  if (!inputValue) {
-                    setFieldValue(`questions.${index}.correctAnswer`, []);
-                    return;
-                  }
-                  const items = inputValue.split(";");
-                  setFieldValue(`questions.${index}.correctAnswer`, items);
+                  const inputValues = e.target.value.split(';').map((item: string) => item.toString().trim());
+                  setFieldValue(`questions.${index}.correctAnswer`, inputValues);
                 }}
               />
             </div>
