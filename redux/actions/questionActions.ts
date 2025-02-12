@@ -220,12 +220,9 @@ export const updatePlacement = createAsyncThunk(
   "question/updatePlacement",
   async ({ id, payload }: { id: string; payload: PlacementPayload }, thunkAPI) => {
     try {
-      console.log(payload);
       const { data } = await axios.put(`${server}/question/placement/${id}`, payload);
       return data.data;
     } catch (error: any) {
-      console.log(error);
-      console.log(error.response.data.message);
       return thunkAPI.rejectWithValue(error.response.data.message);
     }
   }

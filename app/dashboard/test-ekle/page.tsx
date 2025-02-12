@@ -235,9 +235,6 @@ export default function TestEklePage() {
         };
       }
 
-      console.log("formattedValues:", formattedValues);
-      console.log("Dispatching action for type:", selectedType);
-
       let actionResult;
       switch (selectedType) {
         case "exams":
@@ -259,8 +256,6 @@ export default function TestEklePage() {
           console.error("Unknown type:", selectedType);
           return;
       }
-
-      console.log("Action Result:", actionResult);
       
       if (actionResult.type.endsWith('/fulfilled')) {
         toast({
@@ -798,7 +793,6 @@ export default function TestEklePage() {
                         setSelectedType(newType);
                         const newValues = getInitialValues(newType);
                         resetForm({ values: { ...newValues, title: currentTitle } }); // Preserve title
-                        console.log("Selected type:", newType);
                       }}
                     >
                       <SelectTrigger>
@@ -919,9 +913,7 @@ export default function TestEklePage() {
                           type="submit"
                           className="w-full sm:w-auto"
                           onClick={() => {
-                            console.log("Submit button clicked");
-                            console.log("Current values:", values);
-                            console.log("Selected category:", values.category);
+                         
                           }}
                         >
                           Testi Kaydet

@@ -19,7 +19,6 @@ export function LoginForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    console.log(email, password)
     
     if (email === configEmail && password === configPassword) {
       // Create token with expiration
